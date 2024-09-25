@@ -5,16 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chart display</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
 </head>
     <style>
     /* Some basic styling to center the canvas */
+    h1{
+        text-align: center;
+    }
     body {
-      display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
       font-family: Arial, sans-serif;
+    }
+    .graph-container{
+        margin: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-items: center;
+        align-items: center;
     }
     canvas {
       max-width: 600px;
@@ -22,7 +32,10 @@
     }
   </style>
 <body>
-    <canvas id = "chart-1" width="400px"  height="400px"></canvas>
+    <h1 justify-content:center>SDE + ASTRO</h1>
+    <div class="graph-container">
+        <canvas id = "chart-1" width="400px"  height="400px"></canvas>
+    </div>
 </body>
 <script src="chart-1.js"></script>
 </html>
