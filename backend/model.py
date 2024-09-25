@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from scipy.ndimage import gaussian_filter1d
 import numpy as np
 import json
 import codecs
@@ -73,14 +74,8 @@ def process_and_save(extension, user_id):
 
 
 # Data processing functions (already defined)
-def fun(a):
-    b = a.copy()
-    for i in range(a.size):
-        if i != 0 and i != a.size-1:
-            b[i] = (a[i-1] + a[i+1] + a[i]) / 3
-        else:
-            b[i] = a[i]
-    return b
+def gaussian_smoothing(data, sigma=2):
+    return gaussian_filter1d(data, sigma=sigma)
 
 def riseTime(Data, d_new, peaks_dist, peaks_dist_unprocess):
     rise_time = []
@@ -141,12 +136,13 @@ def findpeaks(Data, d_new):
     return peaks_dist, peaks_dist_unprocess
 
 def returnable(extension):
-    data = fits.open('icdata' + extension)
+    data = fits.open('light_cu_data' + extension)
     Data = data[1].data
-    d_new = fun(Data['RATE'].flatten())
+    d_new = gaussian_smoothing(Data['RATE'].flatten(), sigma=2)
     for i in range(100):
-        d_new = fun(d_new)
+        d_new = gaussian_smoothing(d_new, sigma=2)
     peaks_dist, peaks_dist_unprocess = findpeaks(Data, d_new)
+    
     time_of_occurance, time_corresponding_peak_flux, max_peak_flux, average_peak_flux, rise_time, left, decay_time, right = timesofpeaks(Data, d_new, peaks_dist, peaks_dist_unprocess)
     prominences, contour_heights, prominences_prime, contour_heights_prime = contourInfo(Data, d_new, peaks_dist, peaks_dist_unprocess)
 
