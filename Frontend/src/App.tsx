@@ -1,24 +1,36 @@
-import './App.css'
-import HomePage from './components/HomePage'
-import Navbar from './components/Navbar'
-import Sidebar from './components/Sidebar'
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+} from "react-router-dom";
+
+import Home from "./pages/Home";
+import { LoginForm } from "./pages/Login";
+import { RegisterForm } from "./pages/Register";
 
 function App() {
 
-
   return (
-    <>
-    <div className='flex flex-row fixed w-full -z-10'>
-      <Sidebar/>
-      <Navbar/>
-      
-      
-      
+    <div >
+        <Router>
+          <Routes>
+            <Route
+              path="/"
+              element={<Home/>}
+            />
+            <Route
+              path="/login"
+              element={<LoginForm/>}
+            />
+            <Route
+              path="/register"
+              element={<RegisterForm/>}
+            />
+          </Routes>
+        </Router>
      
-      </div>
-      <HomePage/>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
