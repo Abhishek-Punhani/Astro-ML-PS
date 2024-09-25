@@ -5,13 +5,22 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { LoginSchema } from '../utils/validation';
 import { useAuth } from '../AuthContext';
 import Navbar from "../components/Navbar";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+
+interface GoogleUser {
+  username:string,
+  email : string,
+  googleId:string
+}
 
 export const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { login } = useAuth(); // Use the login function from AuthContext
-  
+  const { login ,googleLogin} = useAuth(); 
+  const clientid = "75797648124-eiu57qr3appp3c9lpq5a7kufret0tjo9.apps.googleusercontent.com";
+  console.log(clientid);
   const {
     register,
     handleSubmit,
@@ -19,6 +28,10 @@ export const LoginForm: React.FC = () => {
   } = useForm({
     resolver: yupResolver(LoginSchema),
   });
+
+  const handleLogin=async(user : GoogleUser)=>{
+    await googleLogin(user.email,user.username,user.googleId);
+  }
 
   const onSubmit = async (data: any) => {
     setLoading(true);
@@ -38,7 +51,7 @@ export const LoginForm: React.FC = () => {
    <>
    <Navbar/>
     <div className="min-h-screen flex items-start justify-center bg-white text-black">
-      <div className="w-full max-w-md p-8 space-y-6 border border-gray-300 rounded-lg shadow-lg mt-[6rem]" >
+      <div className="w-full max-w-md p-8 space-y-6 border border-gray-300 rounded-lg shadow-lg mt-[10rem]" >
         <h2 className="text-center text-2xl font-bold">Login</h2>
         {error && <p className="text-red-500">{error}</p>}
         
@@ -81,7 +94,25 @@ export const LoginForm: React.FC = () => {
             {loading ? "Loading..." : "Login"}
           </button>
         </form>
-
+           {/* Google login button */}
+        <div className="w-full flex items-center justify-center">
+          <GoogleOAuthProvider clientId={clientid}>
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                let decode = jwtDecode<any>(credentialResponse.credential as string);
+                let user : GoogleUser = {
+                  username: decode.name,
+                  email: decode.email,
+                  googleId: decode.sub.toString(),
+                };
+                handleLogin(user);
+              }}
+              onError={() => {
+                console.log("Login Failed");
+              }}
+            />
+          </GoogleOAuthProvider>
+        </div>
         <div className="text-center">
           <p>
             Don't have an account?{" "}
