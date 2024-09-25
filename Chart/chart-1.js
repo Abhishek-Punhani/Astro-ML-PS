@@ -32,6 +32,20 @@ const chart_1 = new Chart(ctx,
                         text: "Sales in penny"
                     }
                 }
+            },
+            plugins: {
+                zoom: {
+                    zoom: {
+                        enabled: true, // Enable zooming
+                        mode: 'xy', // Allow zooming in both x and y directions
+                        wheel: {
+                            enabled: true, // Enable zoom on mouse wheel
+                        },
+                        pinch: {
+                            enabled: true // Enable zoom on touch gestures
+                        },
+                    }
+                }
             }
         }
     }
