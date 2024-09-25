@@ -8,14 +8,14 @@ function App() {
 
   return (
     <>
-    <div className='flex flex-row fixed w-full -z-10'>
-      <Sidebar/>
+   
+      
       <Navbar/>
       
       
       
      
-      </div>
+      
       <HomePage/>
     </>
   )
