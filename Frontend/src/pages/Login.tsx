@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import {LoginSchema} from '../utils/validation'
+import { LoginSchema } from '../utils/validation';
+import { useAuth } from '../AuthContext';
+import Navbar from "../components/Navbar";
 
 export const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { login } = useAuth(); // Use the login function from AuthContext
   
   const {
     register,
@@ -22,31 +25,18 @@ export const LoginForm: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:8080/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-        credentials: "include",
-      });
-
-      const result = await response.json();
-      console.log(result);
-
-      if (response.ok) {
-        navigate("/");
-      } else {
-        setError(result.error || "Login failed.");
-      }
-    } catch (error) {
-      setError("An error occurred. Please try again.");
+      await login(data.email, data.password); // Call the login function
+      navigate("/"); // Redirect after successful login
+    } catch (error: any) {
+      setError(error.message || "Login failed.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
+   <>
+   <Navbar/>
     <div className="min-h-screen flex items-start justify-center bg-white text-black">
       <div className="w-full max-w-md p-8 space-y-6 border border-gray-300 rounded-lg shadow-lg mt-[6rem]" >
         <h2 className="text-center text-2xl font-bold">Login</h2>
@@ -101,6 +91,6 @@ export const LoginForm: React.FC = () => {
           </p>
         </div>
       </div>
-    </div>
+    </div></>
   );
 };

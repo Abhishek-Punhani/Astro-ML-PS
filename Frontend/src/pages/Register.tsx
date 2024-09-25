@@ -3,10 +3,13 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { RegisterSchema } from "../utils/validation";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '../AuthContext'; // Import the AuthContext
 
 export const RegisterForm = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const { register: registerUser } = useAuth(); // Use the register function from AuthContext
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(RegisterSchema),
   });
@@ -14,29 +17,16 @@ export const RegisterForm = () => {
   const onSubmit = async (data: any) => {
     setError(null);
     try {
-      const response = await fetch("http://localhost:8080/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-        credentials: "include",
-      });
-
-      const result = await response.json();
-      if (response.ok) {
-        navigate("/");
-      } else {
-        setError(result.error || "Registration failed.");
-      }
-    } catch (err) {
-      setError("An error occurred. Please try again.");
+      await registerUser(data.username, data.email, data.password); // Call the register function
+      navigate("/"); // Redirect after successful registration
+    } catch (error: any) {
+      setError(error.message || "Registration failed.");
     }
   };
 
   return (
     <div className="flex items-start justify-center h-screen">
-      <div className="w-full max-w-md bg-white p-8  shadow mt-[6rem] rounded-xl">
+      <div className="w-full max-w-md bg-white p-8 shadow mt-[6rem] rounded-xl">
         <h2 className="text-center text-2xl font-bold mb-6">Register</h2>
         {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
