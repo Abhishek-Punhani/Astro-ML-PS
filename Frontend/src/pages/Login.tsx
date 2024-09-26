@@ -19,7 +19,7 @@ export const LoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { login ,googleLogin} = useAuth(); 
-  const clientid = "75797648124-eiu57qr3appp3c9lpq5a7kufret0tjo9.apps.googleusercontent.com";
+  const clientid = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID as string;
   const {
     register,
     handleSubmit,

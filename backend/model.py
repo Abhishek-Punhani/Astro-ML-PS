@@ -5,7 +5,8 @@ import numpy as np
 import json
 from astropy.io import fits
 from scipy.signal import find_peaks, peak_prominences
-from db import get_db, PeakResult  # Import the necessary functions and models
+from db import get_db
+from models.peakResult import PeakResult
 
 # Initialize your database engine
 engine = create_engine('sqlite:///mydatabase.db')  # Use the same engine as db.py
