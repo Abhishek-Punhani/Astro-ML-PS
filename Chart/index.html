@@ -3,39 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chart display</title>
+    <title>Chart Display</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <link rel="stylesheet" href = "graph.css">
 </head>
-    <style>
-    /* Some basic styling to center the canvas */
-    h1{
-        text-align: center;
-    }
-    body {
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
-    .graph-container{
-        margin: 100px;
-        display: flex;
-        flex-direction: column;
-        justify-items: center;
-        align-items: center;
-    }
-    canvas {
-      max-width: 1000px;
-      max-height: 600px;
-    }
-  </style>
 <body>
-    <h1 justify-content:center>SDE + ASTRO</h1>
+    <h1>SDE + ASTRO</h1>
     <div class="graph-container">
-        <canvas id = "chart-1" width="400px"  height="400px"></canvas>
+        <canvas id="chart-1" width="400" height="400"></canvas>
+        <div class="button-container">
+            <button class="reset-button" id="reset-zoom">Reset Zoom</button>
+        </div>
     </div>
+
+    <script src="graph.js"></script>
 </body>
-<script src="chart-1.js"></script>
 </html>
