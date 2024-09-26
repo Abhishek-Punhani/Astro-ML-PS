@@ -17,6 +17,12 @@ def process_and_save(extension, user_id):
     average_peak_flux = float(data['average_peak_flux'])
     rise_time = json.dumps(data['rise_time'])  # Store list as JSON string
     decay_time = json.dumps(data['decay_time'])
+    x = json.dumps(data['x'])  
+    y = json.dumps(data['y']) 
+    time_of_occurances = json.dumps(data['time_of_occurances'])  
+    time_corresponding_peak_flux = json.dumps(data['time_corresponding_peak_flux'])  
+
+
 
     # Use a session from get_db
     with get_db() as session:
@@ -26,7 +32,11 @@ def process_and_save(extension, user_id):
             max_peak_flux=max_peak_flux,
             average_peak_flux=average_peak_flux,
             rise_time=rise_time,
-            decay_time=decay_time
+            decay_time=decay_time,
+            x=x,
+            y=y,
+            time_of_occurances=time_of_occurances,
+            time_corresponding_peak_flux=time_corresponding_peak_flux
         )
         session.add(peak_result)
         session.commit()
@@ -123,5 +133,4 @@ def returnable(extension):
         "contour_heights_prime": contour_heights_prime.tolist()
     }
     return returndict
-
 
