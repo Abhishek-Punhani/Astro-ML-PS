@@ -35,19 +35,39 @@ def register():
 
         db.add(new_user)
         db.commit()
+  # Generate a unique token from email ID with 1-sec expiration
+        token = jwt.encode(
+            {"email": new_user.email, "exp": datetime.now(timezone.utc) + timedelta(seconds=1)},
+            os.getenv("AUTH_SECRET"),
+            algorithm="HS256"
+        ).decode('utf-8')  # Convert token to UTF-8
 
-        # Generate a new 6-digit OTP
+        # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)
 
-        # Create a new OTP instance
-        new_otp = OTP(otp=otp, email=email)
-        db.add(new_otp)
+        # Convert OTP to string and append the token
+        otp_with_token = f"{otp}-{token}"
+
+        # Cleanup expired OTPs (older than 330 seconds)
+        expiry_time = datetime.now(timezone.utc) - timedelta(seconds=330)
+        db.query(OTP).filter(OTP.created_at < expiry_time).delete()
+
+        # Check if an OTP entry already exists for this email and delete it
+        existing_entry = db.query(OTP).filter(OTP.email == new_user.email).first()
+        if existing_entry:
+            db.delete(existing_entry)
+            db.commit()
+
+        # Create and save the new OTP entry with the modified OTP
+        new_otp_entry = OTP(otp=otp_with_token, email=new_user.email, created_at=datetime.now(timezone.utc))
+        db.add(new_otp_entry)
         db.commit()
 
-        # Send verification email with OTP
+        # Send verification email (implement this function)
         send_verification_email(new_user.username, new_user.email, otp)
 
-        return jsonify({"message": "OTP sent successfully."}), 200
+        # Respond with a success message and the token
+        return jsonify({"message": "OTP sent successfully.", "token": token}), 200
 
     except IntegrityError:
         db.rollback()  # Rollback in case of integrity error
@@ -250,6 +270,7 @@ def verifyOtp():
     try:
         db= get_db()
         data = request.get_json()
+
 
         # Check if OTP and token are provided
         if not data or 'otp' not in data or 'token' not in data:

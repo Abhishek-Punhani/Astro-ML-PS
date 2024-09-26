@@ -42,7 +42,6 @@ const Navbar = () => {
     logout();
     navigate("/")
   }
-  console.log(path)
   return (
     <>
     {useAuth().user &&path == "/"&&<Sidebar SidebarStatus={`${SideBarOpen}`}/>}
