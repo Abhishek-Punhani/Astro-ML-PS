@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem("token", data.user.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setUser(data.user);
-      const refreshToken = Cookies.get('refreshToken');
+      const refreshToken = Cookies.get('xfd');
       console.log(refreshToken);
     } else {
       throw new Error(data.error);
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password, isAdmin: false }),
+        body: JSON.stringify({ username, email, password }),
       },
     );
     const data = await response.json();
@@ -90,6 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       body: JSON.stringify({ email, username, googleId }),
     });
     const data = await response.json();
+    console.log(data)
     if (response.ok) {
       localStorage.setItem("token", data.user.token);
       localStorage.setItem("user", JSON.stringify(data.user));
