@@ -12,4 +12,4 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     username = Column(String, nullable=False)
-    isverified = Column("isverified", Boolean, default=False, nullable=False)
+    isVerified = Column("isVerified", Boolean, default=False, nullable=False)   
