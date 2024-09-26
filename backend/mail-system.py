@@ -2,15 +2,14 @@ import smtplib as smt
 import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
-
+import dotenv
+dotenv.load_dotenv()
+smpt_server = 'smtp.gmail.com'
+smtp_port = 587
+provider = os.getenv("moon_analyzer_provider")
+emps = os.getenv('moon_analyzer_emps')
 def mailSender(username, usermail, otp):
-    smpt_server = 'smtp.gmail.com'
-    smtp_port = 587
-    provider = os.getenv("---")#provider email here
-    emps = os.getenv('---')#provide the password for mail
     msg = MIMEMultipart()
-    #html code to beautify the mail
     btn = f"""
     <html>
     <head>
@@ -74,7 +73,7 @@ def mailSender(username, usermail, otp):
             <div class="otp">{otp}</div>
             <p class="ignore">If you did not request a password reset, please ignore this email.</p>
             <div class="footer">
-                &copy; 2024 UniAlgo. All rights reserved.
+                &copy; 2024 MoonAnalyzer. All rights reserved.
             </div>
         </div>
     </body>
@@ -92,11 +91,3 @@ def mailSender(username, usermail, otp):
         s.sendmail(provider, usermail, msg.as_string())
     finally:    
         s.quit()
-
-def main():
-    otp = input("Enter otp :")
-    usermail =input("Enter the mail:")
-    mailSender('<User name here>', usermail, otp)
-    print("mail sent to", usermail)
-
-main()
