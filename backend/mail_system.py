@@ -77,7 +77,7 @@ def mailSender(username, usermail, otp):
             <div class="otp">{otp}</div>
             <p class="ignore">If you did not request a password reset, please ignore this email.</p>
             <div class="footer">
-                &copy; 2024 MoonAnalyzer. All rights reserved.
+                &copy; 2024 <a href="#give the site link here">MoonAnalyzer</a>. All rights reserved.
             </div>
         </div>
     </body>
