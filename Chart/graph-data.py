@@ -15,5 +15,5 @@ for ele in data:
         X.append(int(x))
     except:
         continue
-    ind-=1;
+    ind-=1
 print(X)

@@ -10,7 +10,7 @@ const chart_1 = new Chart(ctx,
             datasets:[
                 { 
                     //give the y values here
-                    label : 'Sales',
+                    label : 'flux',
                     data:Y,
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
@@ -24,14 +24,14 @@ const chart_1 = new Chart(ctx,
                 x:{
                     title : {
                         display: true,
-                        text : "Month"
+                        text : "Time"
                     }
                 },
                 y:{
                     beginAtZero: true,
                     title: {
                         display : true,
-                        text: "Sales in penny"
+                        text: "Flux"
                     }
                 }
             },
