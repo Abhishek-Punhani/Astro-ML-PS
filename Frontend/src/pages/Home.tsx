@@ -7,12 +7,11 @@ export const Home : React.FC =()=> {
    <>
    <div>
     <Navbar/>
-   <div className="flex justify-center items-center">
-    <div className="w-[25%]">
-    <Sidebar/>
-    </div>
+
+   
+    
     <HomePage/>
-    </div>
+  
    </div>
    </>
   )

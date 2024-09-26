@@ -1,55 +1,14 @@
-from sqlalchemy import Column, Integer, String, Float, create_engine
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from scipy.ndimage import gaussian_filter1d
 import numpy as np
 import json
-import codecs
-import matplotlib.pyplot as plt
 from astropy.io import fits
-from scipy.interpolate import make_interp_spline
-from scipy.interpolate import interp1d
 from scipy.signal import find_peaks, peak_prominences
+from db import get_db, PeakResult  # Import the necessary functions and models
 
-# Define the base class for SQLAlchemy
-Base = declarative_base()
-
-# Define the User model
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True)
-    username = Column(String(80), nullable=False)
-    email = Column(String(120), unique=True, nullable=False)
-    password = Column("password", String(255), nullable=False)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-# Define the PeakResult model to store data processing results
-class PeakResult(Base):
-    __tablename__ = 'peak_results'
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, nullable=False)  # Foreign key relation to User table
-    max_peak_flux = Column(Float)
-    average_peak_flux = Column(Float)
-    rise_time = Column(String)  # Store as JSON-encoded string
-    decay_time = Column(String)  # Store as JSON-encoded string
-
-    def __repr__(self):
-        return f'<PeakResult for User {self.user_id}>'
-
-
-# Function to create all tables defined in the models
-def create_tables(engine):
-    Base.metadata.create_all(engine)
-
-
-# Initialize SQLAlchemy engine and session
-engine = create_engine('sqlite:///mydatabase.db')  # Use SQLite or any other DB
-Session = sessionmaker(bind=engine)
-session = Session()
+# Initialize your database engine
+engine = create_engine('sqlite:///mydatabase.db')  # Use the same engine as db.py
 
 # Function to process FITS data and save results in the database
 def process_and_save(extension, user_id):
@@ -59,21 +18,22 @@ def process_and_save(extension, user_id):
     rise_time = json.dumps(data['rise_time'])  # Store list as JSON string
     decay_time = json.dumps(data['decay_time'])
 
-    # Save the result in the database
-    peak_result = PeakResult(
-        user_id=user_id,
-        max_peak_flux=max_peak_flux,
-        average_peak_flux=average_peak_flux,
-        rise_time=rise_time,
-        decay_time=decay_time
-    )
-    session.add(peak_result)
-    session.commit()
+    # Use a session from get_db
+    with get_db() as session:
+        # Save the result in the database
+        peak_result = PeakResult(
+            user_id=user_id,
+            max_peak_flux=max_peak_flux,
+            average_peak_flux=average_peak_flux,
+            rise_time=rise_time,
+            decay_time=decay_time
+        )
+        session.add(peak_result)
+        session.commit()
 
-    print(f"Results for user {user_id} saved successfully!")
+        print(f"Results for user {user_id} saved successfully!")
 
-
-# Data processing functions (already defined)
+# Data processing functions
 def gaussian_smoothing(data, sigma=2):
     return gaussian_filter1d(data, sigma=sigma)
 
@@ -164,12 +124,4 @@ def returnable(extension):
     }
     return returndict
 
-
-# For testing purposes
-if __name__ == "__main__":
-    # Create the tables if they don't exist
-    create_tables(engine)
-
-    # Process data for a user with ID 1 (example)
-    process_and_save('.lc', user_id=1)
 
