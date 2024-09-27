@@ -15,7 +15,6 @@ engine = create_engine(DATABASE_URI)
 
 # Create a Base class for SQLAlchemy
 Base = declarative_base()
-
 # Define the User model
 class User(Base):
     __tablename__ = 'users'
@@ -46,7 +45,6 @@ class PeakResult(Base):
 
     def __repr__(self):
         return f'<PeakResult for User {self.user_id}>'
-
 # Create a configured "Session" class
 Session = scoped_session(sessionmaker(bind=engine))
 

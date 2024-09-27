@@ -1,5 +1,5 @@
 from flask import Blueprint
-from controllers.auth_controller import register, login, logout, refresh_token, google_login, change_password
+from controllers.auth_controller import register, login, logout, refresh_token, google_login, change_password,verifyOtp
 
 auth_blueprint = Blueprint('auth', __name__)
 
@@ -10,3 +10,4 @@ auth_blueprint.route('/logout', methods=['POST'])(logout)
 auth_blueprint.route('/refreshtoken', methods=['POST'])(refresh_token)
 auth_blueprint.route('/google-login', methods=['POST'])(google_login)
 auth_blueprint.route('/change-password', methods=['POST'])(change_password)
+auth_blueprint.route('/verify-otp', methods=['POST'])(verifyOtp)

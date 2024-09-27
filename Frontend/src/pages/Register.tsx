@@ -14,8 +14,9 @@ interface GoogleUser {
 }
 
 export const RegisterForm = () => {
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   const { register: registerUser ,googleLogin } = useAuth(); // Use the register function from AuthContext
   const clientid = "75797648124-eiu57qr3appp3c9lpq5a7kufret0tjo9.apps.googleusercontent.com";
 
@@ -23,14 +24,25 @@ export const RegisterForm = () => {
     resolver: yupResolver(RegisterSchema),
   });
   const handleLogin=async(user : GoogleUser)=>{
-    await googleLogin(user.email,user.username,user.googleId);
+   
+    setLoading(true);
+    setError(null);
+
+    try {
+      const vtoken= await googleLogin(user.email,user.username,user.googleId);
+      navigate(`/auth/verify/${vtoken}`); 
+    } catch (error: any) {
+      setError(error.message || "Login failed.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const onSubmit = async (data: any) => {
     setError(null);
     try {
-      await registerUser(data.username, data.email, data.password); // Call the register function
-      navigate("/"); // Redirect after successful registration
+      const vtoken=await registerUser(data.username, data.email, data.password); 
+      navigate(`/auth/verify/${vtoken}`); 
     } catch (error: any) {
       setError(error.message || "Registration failed.");
     }
@@ -82,7 +94,7 @@ export const RegisterForm = () => {
           
 
           <button type="submit" className="w-full bg-black text-white p-2 rounded">
-            Register
+          {loading ? "Loading..." : "Register"}
           </button>
         </form>
 

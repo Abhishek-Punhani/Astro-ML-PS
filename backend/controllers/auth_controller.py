@@ -1,9 +1,14 @@
 from flask import jsonify, request, make_response, session
+from sqlalchemy.exc import IntegrityError
 import bcrypt
 import jwt
 import os
 from db import get_db
 from models.user import User as users
+from models.otp import OTP
+from emails.verification import send_verification_email
+import random
+from datetime import datetime, timezone, timedelta
 
 def register():
     try:
@@ -30,30 +35,45 @@ def register():
 
         db.add(new_user)
         db.commit()
-        
-        # Generate JWT tokens
-        access_token = jwt.encode({"userId": new_user.id}, os.getenv("AUTH_SECRET"), algorithm="HS256")
-        refresh_token = jwt.encode({"userId": new_user.id}, os.getenv("REFRESH_TOKEN_SECRET"), algorithm="HS256")
+  # Generate a unique token from email ID with 1-sec expiration
+        token = jwt.encode(
+            {"email": new_user.email, "exp": datetime.now(timezone.utc) + timedelta(seconds=1)},
+            os.getenv("AUTH_SECRET"),
+            algorithm="HS256"
+        ).decode('utf-8')  # Convert token to UTF-8
 
-        # Decode tokens to strings
-        access_token_str = access_token if isinstance(access_token, str) else access_token.decode('utf-8')
-        refresh_token_str = refresh_token if isinstance(refresh_token, str) else refresh_token.decode('utf-8')
+        # Generate a 6-digit OTP
+        otp = random.randint(100000, 999999)
 
-        # Response Structure
-        response_data = {
-            "message": "Register success.",
-            "user": {
-                "id": new_user.id,
-                "username": new_user.username,
-                "email": new_user.email,
-                "token": access_token_str,
-            },
-        } 
-        response = make_response(jsonify(response_data))
-        response.set_cookie("xfd", refresh_token_str, httponly=True, path="/auth/refreshtoken", max_age=30*24*60*60, samesite="None", secure=True)
-        return response
+        # Convert OTP to string and append the token
+        otp_with_token = f"{otp}-{token}"
+
+        # Cleanup expired OTPs (older than 330 seconds)
+        expiry_time = datetime.now(timezone.utc) - timedelta(seconds=330)
+        db.query(OTP).filter(OTP.created_at < expiry_time).delete()
+
+        # Check if an OTP entry already exists for this email and delete it
+        existing_entry = db.query(OTP).filter(OTP.email == new_user.email).first()
+        if existing_entry:
+            db.delete(existing_entry)
+            db.commit()
+
+        # Create and save the new OTP entry with the modified OTP
+        new_otp_entry = OTP(otp=otp_with_token, email=new_user.email, created_at=datetime.now(timezone.utc))
+        db.add(new_otp_entry)
+        db.commit()
+
+        # Send verification email (implement this function)
+        send_verification_email(new_user.username, new_user.email, otp)
+
+        # Respond with a success message and the token
+        return jsonify({"message": "OTP sent successfully.", "token": token}), 200
+
+    except IntegrityError:
+        db.rollback()  # Rollback in case of integrity error
+        return jsonify({"error": "An error occurred. Please try again."}), 500
     except Exception as e:
-        print("Error in /auth/register: %s", e)
+        print(f"Error in /auth/register: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
 def login():
@@ -63,31 +83,47 @@ def login():
         email = data['email']
         password = data['password']
 
+        # Check for user credentials
         user = db.query(users).filter(users.email == email).first()
         if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
             return jsonify({"error": "Invalid credentials"}), 401
 
-        access_token = jwt.encode({"userId": user.id}, os.getenv("AUTH_SECRET"), algorithm="HS256")
-        refresh_token = jwt.encode({"userId": user.id}, os.getenv("REFRESH_TOKEN_SECRET"), algorithm="HS256")
+        # Generate a unique token from email ID with 1-sec expiration
+        token = jwt.encode(
+            {"email": user.email, "exp": datetime.now(timezone.utc) + timedelta(seconds=1)},
+            os.getenv("AUTH_SECRET"),
+            algorithm="HS256"
+        ).decode('utf-8')  # Convert token to UTF-8
 
-        access_token_str = access_token if isinstance(access_token, str) else access_token.decode('utf-8')
-        refresh_token_str = refresh_token if isinstance(refresh_token, str) else refresh_token.decode('utf-8')
+        # Generate a 6-digit OTP
+        otp = random.randint(100000, 999999)
 
-        # Response Structure
-        response_data = {
-            "message": "Login success.",
-            "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "token": access_token_str,
-            },
-        } 
-        response = make_response(jsonify(response_data))
-        response.set_cookie("xfd", refresh_token_str, httponly=True, path="/auth/refreshtoken", max_age=30*24*60*60, samesite="Lax", secure=True)
-        return response
+        # Convert OTP to string and append the token
+        otp_with_token = f"{otp}-{token}"
+
+        # Cleanup expired OTPs (older than 330 seconds)
+        expiry_time = datetime.now(timezone.utc) - timedelta(seconds=330)
+        db.query(OTP).filter(OTP.created_at < expiry_time).delete()
+
+        # Check if an OTP entry already exists for this email and delete it
+        existing_entry = db.query(OTP).filter(OTP.email == user.email).first()
+        if existing_entry:
+            db.delete(existing_entry)
+            db.commit()
+
+        # Create and save the new OTP entry with the modified OTP
+        new_otp_entry = OTP(otp=otp_with_token, email=user.email, created_at=datetime.now(timezone.utc))
+        db.add(new_otp_entry)
+        db.commit()
+
+        # Send verification email (implement this function)
+        send_verification_email(user.username, user.email, otp)
+
+        # Respond with a success message and the token
+        return jsonify({"message": "OTP sent successfully.", "token": token}), 200
+
     except Exception as e:
-        print("Error in /auth/login: %s", e)
+        print(f"Error in /auth/login: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
 def refresh_token():
@@ -102,28 +138,27 @@ def refresh_token():
         if not user:
             return jsonify({"error": "User not found."}), 404
 
-        access_token = jwt.encode({"userId": user.id}, os.getenv("AUTH_SECRET"), algorithm="HS256")
+        access_token = jwt.encode({"userId": user.id, "exp": datetime.now(timezone.utc) + timedelta(days=1)}, os.getenv("AUTH_SECRET"), algorithm="HS256").decode('utf-8')
 
-        access_token_str = access_token if isinstance(access_token, str) else access_token.decode('utf-8')
-        
         return jsonify({
             "user": {
                 "id": user.id,
                 "username": user.username,
                 "email": user.email,
-                "token": access_token_str,
+                "token": access_token,
             },
         })
     except Exception as e:
-        print("Error in /auth/refreshtoken: %s", e)
+        print(f"Error in /auth/refreshtoken: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
 def logout():
     try:
         response = make_response(jsonify({"message": "Logged out successfully."}))
         response.delete_cookie("xfd", path="/auth/refreshtoken")
         return response
     except Exception as e:
-        print("Error in /auth/logout: %s", e)
+        print(f"Error in /auth/logout: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
 def google_login():
@@ -158,6 +193,118 @@ def google_login():
             # User exists, log them in
             user = existing_user
 
+        # Generate a unique token from email ID with 1-sec expiration
+        token = jwt.encode(
+            {"email": user.email, "exp": datetime.now(timezone.utc) + timedelta(seconds=1)},
+            os.getenv("AUTH_SECRET"),
+            algorithm="HS256"
+        ).decode('utf-8')  # Convert token to UTF-8
+
+        # Generate a 6-digit OTP
+        otp = random.randint(100000, 999999)
+
+        # Convert OTP to string and append the token
+        otp_with_token = f"{otp}-{token}"
+
+        # Cleanup expired OTPs (older than 330 seconds)
+        expiry_time = datetime.now(timezone.utc) - timedelta(seconds=330)
+        db.query(OTP).filter(OTP.created_at < expiry_time).delete()
+
+        # Check if an OTP entry already exists for this email and delete it
+        existing_entry = db.query(OTP).filter(OTP.email == user.email).first()
+        if existing_entry:
+            db.delete(existing_entry)
+            db.commit()
+
+        # Create and save the new OTP entry with the modified OTP
+        new_otp_entry = OTP(otp=otp_with_token, email=user.email, created_at=datetime.now(timezone.utc))
+        db.add(new_otp_entry)
+        db.commit()
+
+        # Send verification email (implement this function)
+        send_verification_email(user.username, user.email, otp)
+
+        # Respond with a success message and the token
+        return jsonify({"message": "OTP sent successfully.", "token": token}), 200
+
+
+    except Exception as e:
+        print(f"Error in /auth/google-login: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+def change_password():
+    try:
+        db = get_db()
+        data = request.get_json()
+
+        if not data or 'current_password' not in data or 'new_password' not in data:
+            return jsonify({"error": "Missing required fields."}), 400
+
+        user_id = session.get('user_id') 
+        current_password = data['current_password']
+        new_password = data['new_password']
+
+        # Fetch the user from the database
+        user = db.query(users).filter(users.id == user_id).first()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        # Verify the current password
+        if not bcrypt.checkpw(current_password.encode('utf-8'), user.password.encode('utf-8')):
+            return jsonify({"error": "Current password is incorrect."}), 401
+
+        # Hash the new password
+        hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Update the user's password in the database
+        user.password = hashed_new_password
+        db.commit()
+
+        return jsonify({"message": "Password changed successfully."}), 200
+
+    except Exception as e:
+        print(f"Error in /auth/change-password: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+def verifyOtp():
+    try:
+        db= get_db()
+        data = request.get_json()
+
+
+        # Check if OTP and token are provided
+        if not data or 'otp' not in data or 'token' not in data:
+            return jsonify({"error": "Please provide both OTP and token."}), 400
+
+        otp_received = data['otp']
+        token_received = data['token']
+
+
+        # Check if the token is a valid 6-digit number
+        if not (100000 < int(otp_received) < 999999):
+            return jsonify({"error": "Invalid OTP."}), 400
+
+        # Convert OTP to string and append the token
+        otp_with_token = f"{otp_received}-{token_received}"
+
+        # Verify if the OTP exists in the database
+        otp_entry = db.query(OTP).filter(OTP.otp == otp_with_token).first()
+        if not otp_entry:
+            return jsonify({"error": "Invalid OTP."}), 400
+
+
+        # Extract email from the OTP entry
+        email = otp_entry.email
+
+        # Delete the OTP entry after successful verification
+        db.delete(otp_entry)
+        db.commit()
+
+        # Retrieve the user associated with the email
+        user = db.query(users).filter(users.email == email).first()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
         # Generate JWT tokens
         access_token = jwt.encode({"userId": user.id}, os.getenv("AUTH_SECRET"), algorithm="HS256")
         refresh_token = jwt.encode({"userId": user.id}, os.getenv("REFRESH_TOKEN_SECRET"), algorithm="HS256")
@@ -179,41 +326,6 @@ def google_login():
         response = make_response(jsonify(response_data))
         response.set_cookie("xfd", refresh_token_str, httponly=True, path="/auth/refreshtoken", max_age=30*24*60*60, samesite="None", secure=True)
         return response
-
     except Exception as e:
-        print("Error in /auth/google-login: %s", e)
+        print(f"Error in /auth/otp: {e}")
         return jsonify({"error": "Internal server error"}), 500
-
-def change_password():
-        try:
-            db = get_db()
-            data = request.get_json()
-
-            if not data or 'current_password' not in data or 'new_password' not in data:
-                return jsonify({"error": "Missing required fields."}), 400
-
-            user_id = session.get('user_id')  # Assuming you store the user ID in session after login
-            current_password = data['current_password']
-            new_password = data['new_password']
-
-            # Fetch the user from the database
-            user = db.query(users).filter(users.id == user_id).first()
-            if not user:
-                return jsonify({"error": "User not found."}), 404
-
-            # Verify the current password
-            if not bcrypt.checkpw(current_password.encode('utf-8'), user.password.encode('utf-8')):
-                return jsonify({"error": "Current password is incorrect."}), 401
-
-            # Hash the new password
-            hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            
-            # Update the user's password in the database
-            user.password = hashed_new_password
-            db.commit()
-
-            return jsonify({"message": "Password changed successfully."}), 200
-
-        except Exception as e:
-            print("Error in /auth/change-password: %s", e)
-            return jsonify({"error": "Internal server error"}), 500

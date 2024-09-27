@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+
 
 # Create a Base class
 Base = declarative_base()
@@ -12,4 +12,4 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     username = Column(String, nullable=False)
-    isVerified = Column("isVerified", Boolean, default=False, nullable=False)
+    isVerified = Column("isVerified", Boolean, default=False, nullable=False)   

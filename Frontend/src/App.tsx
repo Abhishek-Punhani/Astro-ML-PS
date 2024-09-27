@@ -9,10 +9,13 @@ import { LoginForm } from "./pages/Login";
 import { RegisterForm } from "./pages/Register";
 import { AuthProvider, useAuth } from './AuthContext';
 import { useEffect } from "react";
+import Settings from "./pages/Settings";
+import OtpInput from "./components/OtpInput";
 
 
 const  AppContent : React.FC=()=> {
 const {user}=useAuth();
+const {vtoken}=useAuth();
 const token  =user?.token;
   useEffect(()=>{},[user])
   
@@ -24,6 +27,9 @@ const token  =user?.token;
           <Route path="/" element={token ? <Home/> : <LoginForm/>} />
           <Route path="/login" element={token ?  <Navigate to="/" />  :<LoginForm />} />
           <Route path="/register" element={token ? <Navigate to="/" /> :<RegisterForm />} />
+          <Route path="/settings" element={token ? <Settings/>:<LoginForm/>} />
+          <Route path="/auth/verify/:vtoken" element={!token && vtoken ? <OtpInput/> : <Navigate to={"/"}/>} />
+
         </Routes>
       </Router>
     
