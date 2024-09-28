@@ -10,9 +10,7 @@ function plotGraph1(data) {
     let Y = data[1];
     let MF = data[2];
     let TOC = data[3];
-
     const ctx = document.getElementById('chart-1').getContext('2d');
-
     const zoomGestures = {
         pan: {
             enabled: true,
@@ -67,6 +65,9 @@ function plotGraph1(data) {
                     grid: {
                         color: 'rgba(255, 255, 255, 0.5)'
                     },
+                    ticks:{
+                        maxTicksLimit: 5
+                    }
                 },
                 y: {
                     title: {
@@ -76,6 +77,9 @@ function plotGraph1(data) {
                     grid: {
                         color: 'rgba(255, 255, 255, 0.5)', 
                     },
+                    ticks:{
+                        stepSize: 1000
+                    }
                 }
             },
             plugins: {
@@ -90,25 +94,50 @@ function plotGraph1(data) {
 }
 
 
-function plotGraph2() {
-    // Example data; replace with your actual second graph data fetching logic
-    const X = [1, 2, 3, 4, 5];
-    const Y = [10, 15, 12, 18, 14];
-
+function plotGraph2(data) {
+    let X = data[0];
+    let Y = data[1];
+    let leftx = data[4];
+    let lefty = data[5];
     const ctx = document.getElementById('chart-2').getContext('2d');
-
+    const zoomGestures = {
+        pan: {
+            enabled: true,
+            modifierKey: 'ctrl',
+        },
+        zoom: {
+            wheel: {
+                enabled: true,
+            },
+            mode: 'xy',
+        },
+        limits: {
+            x: { min: 0, max: X.length - 1 },
+            y: { min: Math.min(...Y) - 10, max: Math.max(...Y) + 10 },
+        }
+    };
     const chart2 = new Chart(ctx, {
         type: 'line',
         data: {
             labels: X,
             datasets: [
                 {
-                    label: 'Example Data',
+                    label: 'Flux',
                     data: Y,
-                    backgroundColor: 'rgba(255, 205, 86, 0.2)',
-                    borderColor: 'rgba(255, 205, 86, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 0.5,
                     radius: 1.4,
+                },
+                {
+                    label: 'rising time Flux',
+                    data: leftx.map((xValue, index) => ({ x: xValue, y: lefty[index] })), 
+                    backgroundColor: 'rgba(0, 255, 0, 1)',  
+                    borderColor: 'rgba(0, 128, 0, 1)', 
+                    pointRadius: 6,
+                    pointBackgroundColor: 'rgba(0, 255, 0, 1)',
+                    type: 'scatter',
+                    showLine: false
                 }
             ]
         },
@@ -119,21 +148,30 @@ function plotGraph2() {
                 x: {
                     title: {
                         display: true,
-                        text: "X-Axis"
+                        text: "Time"
                     },
                     grid: {
                         color: 'rgba(255, 255, 255, 0.5)'
                     },
+                    ticks:{
+                        maxTicksLimit: 5
+                    }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: "Y-Axis"
+                        text: "Flux"
                     },
                     grid: {
                         color: 'rgba(255, 255, 255, 0.5)', 
                     },
+                    ticks:{
+                        stepSize: 1000
+                    }
                 }
+            },
+            plugins: {
+                zoom: zoomGestures
             }
         }
     });
@@ -147,7 +185,7 @@ let g1Data =  fetchData('http://127.0.0.1:5000/data');
 g1Data.then(response => {
     response = JSON.parse(response);
     plotGraph1(response);
-    plotGraph2();
+    plotGraph2(response);
 })
 
 // Handling tab switching
