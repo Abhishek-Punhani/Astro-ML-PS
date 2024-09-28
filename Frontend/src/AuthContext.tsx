@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import Cookies from 'js-cookie';
+// import Cookies from 'js-cookie';
 
 
 export interface User {
@@ -10,11 +10,13 @@ export interface User {
 }
 
 interface AuthContextType {
+  vtoken:string|null,
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   googleLogin: (email: string, username: string, googleId: string) => Promise<void>;
   logout: () => void;
+  verify:(otp:number,token:string)=>Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -31,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [vtoken, SetVtoken] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -48,11 +51,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     });
     const data = await response.json();
     if (response.ok) {
+    SetVtoken(data.token);
+     return data.token;
+    } else {
+      throw new Error(data.error);
+    }
+  };
+
+
+  const verify = async (otp: number, token: string) => {
+    const response = await fetch("http://localhost:8080/auth/verify-otp", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ otp, token}),
+    });
+    const data = await response.json();
+    if (response.ok && vtoken) {
+      SetVtoken(null);
       localStorage.setItem("token", data.user.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setUser(data.user);
-      const refreshToken = Cookies.get('xfd');
-      console.log(refreshToken);
     } else {
       throw new Error(data.error);
     }
@@ -74,9 +93,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     );
     const data = await response.json();
     if (response.ok) {
-      localStorage.setItem("token", data.user.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
+      SetVtoken(data.token);
+      return data.token;
     } else {
       throw new Error(data.error);
     }
@@ -92,9 +110,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const data = await response.json();
     console.log(data)
     if (response.ok) {
-      localStorage.setItem("token", data.user.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
+      SetVtoken(data.token);
+      return data.token;
     } else {
       throw new Error(data.error);
     }
@@ -107,7 +124,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout ,googleLogin }}>
+    <AuthContext.Provider value={{ vtoken,user, login, register, logout ,googleLogin ,verify}}>
       {children}
     </AuthContext.Provider>
   );

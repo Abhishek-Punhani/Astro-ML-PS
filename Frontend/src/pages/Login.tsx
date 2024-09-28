@@ -19,7 +19,7 @@ export const LoginForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { login ,googleLogin} = useAuth(); 
-  const clientid = "75797648124-eiu57qr3appp3c9lpq5a7kufret0tjo9.apps.googleusercontent.com";
+  const clientid = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID as string;
   const {
     register,
     handleSubmit,
@@ -29,7 +29,18 @@ export const LoginForm: React.FC = () => {
   });
 
   const handleLogin=async(user : GoogleUser)=>{
-    await googleLogin(user.email,user.username,user.googleId);
+   
+    setLoading(true);
+    setError(null);
+
+    try {
+      const vtoken= await googleLogin(user.email,user.username,user.googleId);
+      navigate(`/auth/verify/${vtoken}`); 
+    } catch (error: any) {
+      setError(error.message || "Login failed.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const onSubmit = async (data: any) => {
@@ -37,8 +48,8 @@ export const LoginForm: React.FC = () => {
     setError(null);
 
     try {
-      await login(data.email, data.password); // Call the login function
-      navigate("/"); // Redirect after successful login
+      const vtoken=await login(data.email, data.password); 
+      navigate(`/auth/verify/${vtoken}`); 
     } catch (error: any) {
       setError(error.message || "Login failed.");
     } finally {
@@ -52,7 +63,7 @@ export const LoginForm: React.FC = () => {
     <div className="min-h-screen flex items-start justify-center bg-white text-black">
       <div className="w-full max-w-md p-8 space-y-6 border border-gray-300 rounded-lg shadow-lg mt-[10rem]" >
         <h2 className="text-center text-2xl font-bold">Login</h2>
-        {error && <p className="text-red-500">{error}</p>}
+        
         
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -84,7 +95,7 @@ export const LoginForm: React.FC = () => {
               </p>
             )}
           </div>
-
+          {error && <p className="text-red-500">{error}</p>}
           <button
             type="submit"
             className="w-full p-2 text-white bg-black rounded hover:bg-gray-800"

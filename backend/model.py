@@ -5,11 +5,16 @@ import numpy as np
 import json
 from astropy.io import fits
 from scipy.signal import find_peaks, peak_prominences
+<<<<<<< master
 from db import get_db, PeakResult  
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import silhouette_score
+=======
+from db import get_db
+from models.peakResult import PeakResult
+>>>>>>> master
 
 # Initialize your database engine
 engine = create_engine('sqlite:///mydatabase.db')  # Ensure correct database URL
