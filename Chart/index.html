@@ -6,12 +6,19 @@
     <title>Chart Display</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
-    <link rel="stylesheet" href = "graph.css">
+    <link rel="stylesheet" href="graph.css">
 </head>
 <body>
     <h1>SDE + ASTRO</h1>
+    
+    <div class="tab-container">
+        <button class="tab-button active" data-tab="chart-1">Graph 1</button>
+        <button class="tab-button" data-tab="chart-2">Graph 2</button>
+    </div>
+    
     <div class="graph-container">
-        <canvas id="chart-1" width="400" height="400"></canvas>
+        <canvas id="chart-1" width="600" height="500"></canvas>
+        <canvas id="chart-2" width="600" height="500" style="display:none;"></canvas>
         <div class="button-container">
             <button class="reset-button" id="reset-zoom">Reset Zoom</button>
         </div>
