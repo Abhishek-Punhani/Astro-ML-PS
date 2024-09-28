@@ -5,24 +5,29 @@ import numpy as np
 import json
 from astropy.io import fits
 from scipy.signal import find_peaks, peak_prominences
-from db import get_db, PeakResult  # Import the necessary functions and models
+from db import get_db, PeakResult  
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import DBSCAN
+from sklearn.metrics import silhouette_score
 
 # Initialize your database engine
-engine = create_engine('sqlite:///mydatabase.db')  # Use the same engine as db.py
+engine = create_engine('sqlite:///mydatabase.db')  # Ensure correct database URL
 
 # Function to process FITS data and save results in the database
 def process_and_save(extension, user_id):
     data = returnable(extension)  # Process the FITS data
     max_peak_flux = float(data['max_peak_flux'])
     average_peak_flux = float(data['average_peak_flux'])
-    rise_time = json.dumps(data['rise_time'])  # Store list as JSON string
+    rise_time = json.dumps(data['rise_time'])  # Store lists as JSON strings
     decay_time = json.dumps(data['decay_time'])
     x = json.dumps(data['x'])  
     y = json.dumps(data['y']) 
     time_of_occurances = json.dumps(data['time_of_occurances'])  
     time_corresponding_peak_flux = json.dumps(data['time_corresponding_peak_flux'])  
-
-
+    cluster_labels = json.dumps(data['cluster_labels'])
+    silhouette_score = data.get('silhouette_avg')
+    silhouette_score = silhouette_score if silhouette_score is not None else None
 
     # Use a session from get_db
     with get_db() as session:
@@ -36,7 +41,9 @@ def process_and_save(extension, user_id):
             x=x,
             y=y,
             time_of_occurances=time_of_occurances,
-            time_corresponding_peak_flux=time_corresponding_peak_flux
+            time_corresponding_peak_flux=time_corresponding_peak_flux,
+            cluster_labels=cluster_labels  # Save cluster labels
+            silhouette_score=silhouette_score 
         )
         session.add(peak_result)
         session.commit()
@@ -60,9 +67,7 @@ def riseTime(Data, d_new, peaks_dist, peaks_dist_unprocess):
         left.append(j)
     for a in range(peaks_dist.size):
         rise_time.append(abs(Data['TIME'][peaks_dist[a]] - Data['TIME'][left[a]]))
-        leftval.append(float(Data['TIME'][left[a]]))
-
-    return rise_time, leftval
+    return rise_time, left
 
 def decayTime(Data, d_new, peaks_dist, peaks_dist_unprocess):
     decay_time = []
@@ -77,44 +82,66 @@ def decayTime(Data, d_new, peaks_dist, peaks_dist_unprocess):
         right.append(j)
     for a in range(peaks_dist.size):
         decay_time.append(abs(Data['TIME'][peaks_dist[a]] - Data['TIME'][right[a]]))
-        rightval.append(Data['TIME'][right[a]])
-
-    return decay_time, rightval
+    return decay_time, right
 
 def contourInfo(Data, d_new, peaks_dist, peaks_dist_unprocess):
-    prominences, _, _ = peak_prominences(Data['RATE'], peaks_dist_unprocess)
-    contour_heights = Data['RATE'][peaks_dist_unprocess] - prominences
-
+    prominences, _, _ = peak_prominences(d_new, peaks_dist_unprocess)
     prominences_prime, _, _ = peak_prominences(d_new, peaks_dist)
-    contour_heights_prime = d_new[peaks_dist] - prominences_prime
-
-    return prominences, contour_heights, prominences_prime, contour_heights_prime
+    return prominences, prominences_prime
 
 def timesofpeaks(Data, d_new, peaks_dist, peaks_dist_unprocess):
     time_of_occurance = Data['TIME'][peaks_dist_unprocess]
-    time_corresponding_peak_flux = Data['RATE'][peaks_dist_unprocess]
-    max_peak_flux = max(Data['RATE'][peaks_dist_unprocess])
-    average_peak_flux = np.average(Data['RATE'])
+    time_corresponding_peak_flux = d_new[peaks_dist_unprocess]
+    max_peak_flux = max(d_new[peaks_dist_unprocess])
+    average_peak_flux = np.average(d_new)
     rise_time, left = riseTime(Data, d_new, peaks_dist, peaks_dist_unprocess)
     decay_time, right = decayTime(Data, d_new, peaks_dist, peaks_dist_unprocess)
     return time_of_occurance, time_corresponding_peak_flux, max_peak_flux, average_peak_flux, rise_time, left, decay_time, right
 
 def findpeaks(Data, d_new):
-    all_peaks, _ = find_peaks(Data['RATE'])
+    all_peaks, _ = find_peaks(d_new)
     peaks_dist, _ = find_peaks(d_new, height=350, distance=500)
-    peaks_dist_unprocess, _ = find_peaks(Data['RATE'], height=350, distance=500)
+    peaks_dist_unprocess, _ = find_peaks(d_new, height=350, distance=500)
     return peaks_dist, peaks_dist_unprocess
 
+def apply_dbscan(features):
+    # Normalize the features
+    scaler = StandardScaler()
+    scaled_features = scaler.fit_transform(features)
+
+    # Apply DBSCAN
+    dbscan = DBSCAN(eps=0.5, min_samples=5)
+    labels = dbscan.fit_predict(scaled_features)
+
+    # Calculate silhouette score for non-noise points (ignoring label -1)
+    non_noise_mask = labels != -1
+    if len(np.unique(labels[non_noise_mask])) > 1:
+        silhouette_avg = silhouette_score(scaled_features[non_noise_mask], labels[non_noise_mask])
+    else:
+        silhouette_avg = None  # No valid clusters for silhouette score
+
+    return labels, silhouette_avg
+
 def returnable(extension):
-    data = fits.open('light_cu_data' + extension)
+    data = fits.open('ch2_xsm_20240906_v1_level2' + extension)
     Data = data[1].data
+
+    # Apply Gaussian smoothing for visualization
     d_new = gaussian_smoothing(Data['RATE'].flatten(), sigma=2)
-    for i in range(100):
-        d_new = gaussian_smoothing(d_new, sigma=2)
+
+    # Detect peaks on the original unsmoothed data
     peaks_dist, peaks_dist_unprocess = findpeaks(Data, d_new)
-    
+
+    # Process time and peak-related features
     time_of_occurance, time_corresponding_peak_flux, max_peak_flux, average_peak_flux, rise_time, left, decay_time, right = timesofpeaks(Data, d_new, peaks_dist, peaks_dist_unprocess)
-    prominences, contour_heights, prominences_prime, contour_heights_prime = contourInfo(Data, d_new, peaks_dist, peaks_dist_unprocess)
+    prominences, prominences_prime = contourInfo(Data, d_new, peaks_dist, peaks_dist_unprocess)
+
+    # No more trimming based on minimum length
+    # Prepare feature matrix for DBSCAN
+    features = np.array([rise_time, decay_time, prominences]).T
+
+    # Apply DBSCAN for clustering and calculate silhouette score
+    cluster_labels, silhouette_avg = apply_dbscan(features)
 
     returndict = {
         "x": Data['TIME'].tolist(),
@@ -128,9 +155,29 @@ def returnable(extension):
         "decay_time": decay_time,
         "right": right,
         "prominences": prominences.tolist(),
-        "contour_heights": contour_heights.tolist(),
-        "prominences_prime": prominences_prime.tolist(),
-        "contour_heights_prime": contour_heights_prime.tolist()
+        "cluster_labels": cluster_labels.tolist(),
+        "silhouette_avg": silhouette_avg
     }
+
     return returndict
 
+# Commenting out plotting for now, but can be used for testing
+# if __name__ == "__main__":
+#     returndict = returnable('.lc')
+#     plt.figure(figsize=(10, 6))
+#     plt.plot(returndict['x'], returndict['y'], label='Smoothed RATE', color='blue')
+#     unique_labels = np.unique(returndict['cluster_labels'])
+#     colors = plt.colormaps['rainbow'](np.linspace(0, 1, len(unique_labels)))
+#     for label, color in zip(unique_labels, colors):
+#         label_mask = np.array(returndict['cluster_labels']) == label
+#         if label == -1:
+#             plt.scatter(np.array(returndict['time_of_occurances'])[label_mask], np.array(returndict['time_corresponding_peak_flux'])[label_mask], color='black', label='Outliers', s=50)
+#         else:
+#             plt.scatter(np.array(returndict['time_of_occurances'])[label_mask], np.array(returndict['time_corresponding_peak_flux'])[label_mask], color=color, label=f'Cluster {label}', s=50)
+#     plt.title('X-ray Burst Analysis with DBSCAN Clusters and Outliers (Smoothed Data)')
+#     plt.xlabel('Time')
+#     plt.ylabel('Smoothed Rate')
+#     plt.legend()
+#     plt.grid(True)
+#     plt.show()
+#     print(f"Silhouette Score: {returndict['silhouette_avg']}")
