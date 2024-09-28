@@ -161,7 +161,7 @@ def returnable(extension):
 
     return returndict
 
-# Commenting out plotting for now, but can be used for testing
+# Commenting out plotting for now, but can be used for testing purposes
 # if __name__ == "__main__":
 #     returndict = returnable('.lc')
 #     plt.figure(figsize=(10, 6))
