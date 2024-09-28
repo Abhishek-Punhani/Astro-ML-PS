@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean , JSON
+from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean , JSON , Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 import os
@@ -43,6 +43,7 @@ class PeakResult(Base):
     y = Column(JSON, nullable=False)  
     time_of_occurances = Column(JSON, nullable=False) 
     time_corresponding_peak_flux = Column(JSON, nullable=False)  
+    silhouette_score = Column(Float) 
 
     def __repr__(self):
         return f'<PeakResult for User {self.user_id}>'
