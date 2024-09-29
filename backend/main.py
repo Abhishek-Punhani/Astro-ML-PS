@@ -11,12 +11,15 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# CORS Configuration
+print("CLIENT_URI:", os.getenv("CLIENT_URI"))
+
+
 cors_options = {
     "supports_credentials": True,
     "origins": [os.getenv("CLIENT_URI")],
 }
-CORS(app, resources={r"/*": cors_options})
+
+CORS(app, supports_credentials=True) 
 
 # Load configuration
 app.config.from_object(Config)

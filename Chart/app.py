@@ -12,7 +12,7 @@ def getDbData():
     data = f.readlines()
     X=[]
     Y=[]
-    ind = 200
+    ind = 3000
     for ele in data:
         if(ind==0):
             break

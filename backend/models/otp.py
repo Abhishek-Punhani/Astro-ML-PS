@@ -9,7 +9,7 @@ class OTP(Base):
     __tablename__ = 'otp'
 
     id = Column(Integer, primary_key=True)
-    otp = Column(Integer, nullable=False)
+    otp = Column(String, nullable=False)  # Changed to String
     email = Column(String(120), nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
