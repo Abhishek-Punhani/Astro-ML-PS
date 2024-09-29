@@ -17,8 +17,8 @@ export const RegisterForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { register: registerUser ,googleLogin } = useAuth(); // Use the register function from AuthContext
-  const clientid = "75797648124-eiu57qr3appp3c9lpq5a7kufret0tjo9.apps.googleusercontent.com";
+  const { register: registerUser ,googleLogin } = useAuth();
+  const clientid = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID as string;
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(RegisterSchema),
@@ -54,7 +54,7 @@ export const RegisterForm = () => {
     <div className="flex items-start justify-center h-screen">
       <div className="w-full max-w-md bg-white p-8 shadow mt-[10rem] rounded-xl">
         <h2 className="text-center text-2xl font-bold mb-6">Register</h2>
-        {error && <p className="text-red-500 text-center">{error}</p>}
+      
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Full Name */}
           <div>
@@ -97,6 +97,7 @@ export const RegisterForm = () => {
           {loading ? "Loading..." : "Register"}
           </button>
         </form>
+        {error && <><br /><p className="text-red-500 text-center">{error}</p></>}
 
           {/* Google login button */}
           <br />
@@ -120,7 +121,7 @@ export const RegisterForm = () => {
         </div>
 
         <p className="text-center text-sm mt-4">
-          Already have an account? <a href="/login" className="text-blue-500">Login</a>
+          Already have an account? <a href="/login" className="text-black underline " >Login</a>
         </p>
       </div>
     </div>
