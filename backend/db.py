@@ -1,73 +1,44 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean , JSON , Text
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 import os
 import dotenv
+import logging
 
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
-# Configure your database URI
-DATABASE_URI = os.getenv("DATABASE_URL", 'sqlite:///mydatabase.db')  # Use SQLite or any other DB
+# Configure logging
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
+# Get the database URI from environment variables
+DATABASE_URI = os.getenv("DATABASE_URL")  # Correct usage here
+
+if DATABASE_URI is None:
+    raise ValueError("DATABASE_URL environment variable not set.")
+
+print(f"Connecting to database at: {DATABASE_URI}")  # For debugging
 
 # Create a new SQLAlchemy engine
-engine = create_engine(DATABASE_URI)
+engine = create_engine(DATABASE_URI)  # Use the variable here
 
 # Create a Base class for SQLAlchemy
 Base = declarative_base()
-
-<<<<<<< master
-# Define the User model
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(Integer, primary_key=True)
-    username = Column(String(80), nullable=False)
-    email = Column(String(120), unique=True, nullable=False)
-    password = Column("password", String(255), nullable=False)
-    isVerified = Column(Boolean, default=False, nullable=False)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-# Define the PeakResult model
-class PeakResult(Base):
-    __tablename__ = 'peak_results'
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=False)
-    max_peak_flux = Column(Float, nullable=False)
-    average_peak_flux = Column(Float, nullable=False)
-    rise_time = Column(JSON, nullable=False)
-    decay_time = Column(JSON, nullable=False)
-    x = Column(JSON, nullable=False) 
-    y = Column(JSON, nullable=False)  
-    time_of_occurances = Column(JSON, nullable=False) 
-    time_corresponding_peak_flux = Column(JSON, nullable=False)  
-    silhouette_score = Column(Float) 
-
-    def __repr__(self):
-        return f'<PeakResult for User {self.user_id}>'
-=======
->>>>>>> master
 
 # Create a configured "Session" class
 Session = scoped_session(sessionmaker(bind=engine))
 
 def get_db():
-    """
-    Returns a database session. This function should be called to interact with the database.
-    """
+    """Returns a database session."""
     return Session()
 
 def close_db():
-    """
-    Closes the database session.
-    """
+    """Closes the database session."""
     Session.remove()
 
-# Function to create all tables defined in the models
 def create_tables(engine):
+    """Function to create all tables defined in the models."""
     Base.metadata.create_all(engine)
 
 # Create the tables if they don't exist
