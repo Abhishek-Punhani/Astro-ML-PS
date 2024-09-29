@@ -4,9 +4,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { RegisterSchema } from "../utils/validation";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../AuthContext'; // Import the AuthContext
-import Navbar from "../components/Navbar";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { Link } from "react-router-dom";
 interface GoogleUser {
   username:string,
   email : string,
@@ -50,9 +50,9 @@ export const RegisterForm = () => {
 
   return (
     <>
-    <Navbar/>
+    
     <div className="flex items-start justify-center h-screen">
-      <div className="w-full max-w-md bg-white p-8 shadow mt-[10rem] rounded-xl">
+      <div className="w-full max-w-md bg-transparent text-white border font-unic p-8 shadow mt-[10rem] rounded-xl fadein">
         <h2 className="text-center text-2xl font-bold mb-6">Register</h2>
       
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -63,7 +63,7 @@ export const RegisterForm = () => {
               id="name"
               type="text"
               {...register("username")}
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 p-2 rounded bg-transparent text-white outline-none"
             />
             <p className="text-red-500 text-sm">{errors.username?.message}</p>
           </div>
@@ -75,7 +75,7 @@ export const RegisterForm = () => {
               id="email"
               type="email"
               {...register("email")}
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 p-2 rounded bg-transparent text-white outline-none"
             />
             <p className="text-red-500 text-sm">{errors.email?.message}</p>
           </div>
@@ -87,13 +87,13 @@ export const RegisterForm = () => {
               id="password"
               type="password"
               {...register("password")}
-              className="w-full border border-gray-300 p-2 rounded"
+              className="w-full border border-gray-300 p-2 rounded bg-transparent text-white outline-none"
             />
             <p className="text-red-500 text-sm">{errors.password?.message}</p>
           </div>
           
 
-          <button type="submit" className="w-full bg-black text-white p-2 rounded">
+          <button type="submit" className="w-full hover:bg-[rgb(0,0,0,0.4)] bg-transparent border text-white p-2 rounded">
           {loading ? "Loading..." : "Register"}
           </button>
         </form>
@@ -120,8 +120,8 @@ export const RegisterForm = () => {
           </GoogleOAuthProvider>
         </div>
 
-        <p className="text-center text-sm mt-4">
-          Already have an account? <a href="/login" className="text-black underline " >Login</a>
+        <p className="text-center mt-4">
+          Already have an account? <Link to="/login" className="text-white underline">Login</Link>
         </p>
       </div>
     </div>

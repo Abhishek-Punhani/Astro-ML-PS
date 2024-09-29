@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from 'yup';
 import { useAuth } from "../AuthContext";
-import Navbar from "../components/Navbar";
 const ForgotPasswordEmail = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -36,10 +35,9 @@ const ForgotPasswordEmail = () => {
       };
   return (
    <>
-   <Navbar/>
     <div className="flex justify-center items-center h-screen">
       <div className="w-full max-w-sm">
-        <div className="bg-white shadow-lg rounded-lg p-6">
+        <div className="border text-white font-unic shadow-lg rounded-lg p-6">
           <div className="text-center mb-6">
             <h3 className="text-4xl">
               <i className="fa fa-lock"></i>
@@ -51,13 +49,13 @@ const ForgotPasswordEmail = () => {
             <div >
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <i className="fa fa-envelope text-blue-500"></i>
+                  <i className="fa fa-envelope text-white"></i>
                 </span>
                <div>
                <input
                   id="email"
                   placeholder="Email address"
-                  className="form-input w-full pl-10 p-2.5 border border-gray-300 rounded-md"
+                  className="form-input w-full pl-10 p-2.5 border border-gray-300 rounded-md bg-transparent outline-none"
                   type="email"
                   {...register("email")}
                   required
@@ -75,7 +73,7 @@ const ForgotPasswordEmail = () => {
             <div>
               <button
                 name="recover-submit"
-                className="w-full p-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                className="w-full text-white border hover:bg-rgb[(0,0,0,0.4)] bg-transparent font-medium rounded-lg text-sm px-5 py-2.5 text-center"
                 type="submit"
                 disabled={loading}
               >Reset Password</button>

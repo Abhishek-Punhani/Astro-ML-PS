@@ -4,9 +4,9 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { LoginSchema } from '../utils/validation';
 import { useAuth } from '../AuthContext';
-import Navbar from "../components/Navbar";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { Link } from "react-router-dom";
 
 interface GoogleUser {
   username:string,
@@ -58,20 +58,20 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-   <>
-   <Navbar/>
-    <div className="min-h-screen flex items-start justify-center bg-white text-black">
-      <div className="w-full max-w-md p-8 space-y-6 border border-gray-300 rounded-lg shadow-lg mt-[10rem]" >
+   <div>
+   
+    <div className="min-h-screen flex items-start justify-center text-white font-unic">
+      <div className="w-full max-w-md p-8 space-y-6 border border-gray-300 fadein rounded-lg shadow-lg mt-[10rem]" >
         <h2 className="text-center text-2xl font-bold">Login</h2>
         
         
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <div>
             <label className="block text-sm font-medium">Email</label>
             <input
               type="email"
               {...register("email")}
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
+              className="w-full p-2 mt-1 border border-gray-300 rounded bg-transparent outline-none"
               placeholder="Enter your email"
             />
             {errors.email && (
@@ -86,7 +86,7 @@ export const LoginForm: React.FC = () => {
             <input
               type="password"
               {...register("password")}
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
+              className="w-full p-2 mt-1 border border-gray-300 rounded bg-transparent outline-none"
               placeholder="Enter your password"
             />
             {errors.password && (
@@ -101,7 +101,7 @@ export const LoginForm: React.FC = () => {
           </div>
           <button
             type="submit"
-            className="w-full p-2 text-white bg-black rounded hover:bg-gray-800"
+            className="w-full p-2 text-white border rounded hover:bg-[rgb(0,0,0,0.4)]"
             disabled={loading}
           >
             {loading ? "Loading..." : "Login"}
@@ -129,12 +129,12 @@ export const LoginForm: React.FC = () => {
         <div className="text-center">
           <p>
             Don't have an account?{" "}
-            <a href="/register" className="text-black underline">
+            <Link to="/register" className="text-white underline">
               Register
-            </a>
+            </Link>
           </p>
         </div>
       </div>
-    </div></>
+    </div></div>
   );
 };

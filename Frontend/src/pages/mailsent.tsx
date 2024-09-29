@@ -10,20 +10,20 @@ const MailSuccess = () => {
   }
   return (
     <>
-      <Navbar />
-      <div className="py-20">
+      
+      <div className="py-20 h-screen w-screen flex flex-col items-center justify-center fadein" >
         <div className="container mx-auto">
           <div className="flex justify-center">
             <div className="lg:w-1/2 w-full">
               {/* Success Inner */}
-              <div className="text-center bg-white p-10 border-t border-gray-200 shadow-md">
-                <h1 className="text-6xl font-bold text-blue-600">
+              <div className="text-center p-10 border rounded-lg text-white font-unic shadow-md">
+                <h1 className="text-6xl font-bold text-white">
                   <i className="fa fa-envelope"></i>
-                  <span className="block text-xl font-semibold text-gray-800 mt-5">
+                  <span className="block text-xl font-semibold text-white mt-5">
                     {access === "link" ? "Password Reset Link Sent!" : "Password Reset Successfully!"}
                   </span>
                 </h1>
-                <p className="py-6 text-gray-700">
+                <p className="py-6 text-white">
                   {access === "link" ? 
                     "Please check your email for a link to reset your password. If you don't receive it in a few minutes, check your spam folder or try again." : 
                     "Your password has been reset successfully. You can now log in with your new password."}
