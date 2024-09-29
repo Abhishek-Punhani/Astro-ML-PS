@@ -15,6 +15,7 @@ function plotGraph1(data) {
         pan: {
             enabled: true,
             modifierKey: 'ctrl',
+            mode:'xy'
         },
         zoom: {
             wheel: {
@@ -58,7 +59,7 @@ function plotGraph1(data) {
         },
         options: {
             responsive: true,
-            animation: false,
+            //animation: false,
             scales: {
                 x: {
                     title: {
@@ -93,7 +94,13 @@ function plotGraph1(data) {
     });
 
     document.getElementById("reset-zoom").addEventListener('click', () => {
-        chart1.resetZoom();
+        document.getElementById("reset-zoom").style.display="none";
+        document.getElementById("loader-animation-reset").style.display="block";
+        setTimeout(()=>{chart1.resetZoom();
+        document.getElementById("reset-zoom").style.display="block";
+        document.getElementById("loader-animation-reset").style.display="none";
+        },500);
+        
     });
 }
 
@@ -147,7 +154,7 @@ function plotGraph2(data) {
         },
         options: {
             responsive: true,
-            animation: false,
+            //animation: false,
             scales: {
                 x: {
                     title: {
@@ -181,7 +188,14 @@ function plotGraph2(data) {
     });
 
     document.getElementById("reset-zoom").addEventListener('click', () => {
-        chart2.resetZoom();
+        document.getElementById("reset-zoom").style.display="none";
+        document.getElementById("loader-animation-reset").style.display="block";
+        
+        setTimeout(()=>{chart2.resetZoom();
+        document.getElementById("reset-zoom").style.display="block";
+        document.getElementById("loader-animation-reset").style.display="none";
+        },500);
+        
     });
 }
 

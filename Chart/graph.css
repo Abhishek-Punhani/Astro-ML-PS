@@ -71,9 +71,10 @@ canvas {
 }
 .loader{
     margin: 50px;
-    border: 4px solid #f3f3f3;
+    border: 4px solid #f3f3f300;
     border-radius: 50%;
-    border-top: 4px solid #3498db;
+    border-top: 8px solid #3498db;
+    border-bottom: 8px solid #34dbd5;
     width: 30px;
     height: 30px;
     -webkit-animation: spin 0.7s linear infinite; 
@@ -88,3 +89,24 @@ canvas {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+
+#loader-animation-reset{
+    margin:0px;
+    border: 4px solid #f3f3f300;
+    border-radius: 50%;
+    border-top: 4px solid #3498db;
+    width: 20px;
+    height: 20px;
+}
+
+canvas{
+    animation: fadeIn 0.5s ease-in forwards;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

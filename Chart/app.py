@@ -18,7 +18,8 @@ def getModelInfo():
     for ele in left:
         leftx.append(X[ele])
         lefty.append(Y[ele])
-    return X,Y,MF,TOC,leftx,lefty
+    #remove slicing later   
+    return X[:6000],Y[:6000],MF[:100],TOC[0:100],leftx,lefty
     
     
 @app.route('/data', methods=['GET'])
