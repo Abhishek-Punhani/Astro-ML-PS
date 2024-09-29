@@ -40,6 +40,9 @@ function plotGraph1(data) {
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 0.5,
                     radius: 1.4,
+                    tension: 0,  
+                    stepped: false, 
+                    borderDash: []
                 },
                 {
                     label: 'Peak Flux',
@@ -50,7 +53,7 @@ function plotGraph1(data) {
                     pointBackgroundColor: 'rgba(255, 99, 132, 1)',
                     type: 'scatter',
                     showLine: false,
-                }
+                },
             ]
         },
         options: {
@@ -83,7 +86,8 @@ function plotGraph1(data) {
                 }
             },
             plugins: {
-                zoom: zoomGestures
+                zoom: zoomGestures,
+                
             }
         }
     });
@@ -185,9 +189,10 @@ let g1Data =  fetchData('http://127.0.0.1:5000/data');
 g1Data.then(response => {
     response = JSON.parse(response);
     plotGraph1(response);
+    document.getElementById("chart-1").style.display="block";
+    document.getElementById("loader-animation").style.display="none";
     plotGraph2(response);
 })
-
 // Handling tab switching
 document.querySelectorAll('.tab-button').forEach(button => {
     button.addEventListener('click', () => {
