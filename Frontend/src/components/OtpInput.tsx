@@ -8,14 +8,15 @@ const OTPForm: React.FC = () => {
   const [otp, setOtp] = useState<string[]>(['', '', '', '','','']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {verify}=useAuth();
+  const [msg, setMsg] = useState<string | null>(null);
+  const {verify,resendOtp,reftoken}=useAuth();
   const {vtoken}=useParams<{vtoken:string}>();
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const { value } = e.target;
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1); // Accept only one digit
+    newOtp[index] = value.slice(-1);
     setOtp(newOtp);
 
     if (value && index < inputsRef.current.length - 1) {
@@ -50,13 +51,33 @@ const OTPForm: React.FC = () => {
     if (/^\d{4}$/.test(pastedData)) {
       const pastedOtp = pastedData.split('');
       setOtp(pastedOtp);
-      inputsRef.current[3]?.focus(); // focus last input
+      inputsRef.current[3]?.focus(); 
     }
   };
 
-  const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
+  const handleresend=async(e: React.MouseEvent<HTMLButtonElement, MouseEvent>)=>{
     e.preventDefault();
     setLoading(true);
+    setError(null);
+
+    try {
+        const res=await resendOtp(reftoken as string);
+        navigate(`/auth/verify/${res}`); 
+        setOtp(['', '', '', '','','']);
+        setMsg("OTP sent Successfully!,check your mail")
+
+    } catch (error: any) {
+        setError(error.message || "Login failed.");
+      } finally {
+        setLoading(false);
+      }
+  }
+
+  const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
+
+    e.preventDefault();
+    setLoading(true);
+    setMsg(null);
     setError(null);
 
     try {
@@ -111,6 +132,7 @@ const OTPForm: React.FC = () => {
                   ))}
                 </div>
                 {error && <p className="text-red-500">{error}</p>}
+                {msg && <p className="text-green-500">{msg}</p>}
                 <div className="max-w-[280px] mx-auto mt-6">
                   <button
                     type="submit"
@@ -124,9 +146,9 @@ const OTPForm: React.FC = () => {
 
               <div className="text-sm text-slate-500 mt-6">
                 Didn't receive code?{' '}
-                <a className="font-medium text-indigo-500 hover:text-indigo-600" href="#0">
-                  Resend
-                </a>
+                <button className="font-medium text-indigo-500 hover:text-indigo-600" type='button' onClick={(e)=>handleresend(e)}>
+                  Resend 
+                </button>
               </div>
             </div>
           </div>

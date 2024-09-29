@@ -1,15 +1,19 @@
-import React, { useState } from 'react'
+import  { useState } from 'react'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../AuthContext'
 import {useForm} from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
 const Settings = () => {
   const [Page, setPage] = useState('Account')
   const { user } = useAuth()
+  const navigate=useNavigate();
   const { register, handleSubmit, formState: { isSubmitting } } = useForm()
   const onsubmit=(data:any)=>{
     if(data.username != user?.username || data.email != user?.email){
     console.log(data)
-  }
+  }  }
+  const handleChangePassword=()=>{
+   navigate("/settings/change-password")
   }
   return (
     <>
@@ -31,7 +35,7 @@ const Settings = () => {
             </div>
             <div className='flex flex-row items-center w-full justify-between py-6 px-8 border-b'>
             <h1>Password:</h1>
-            <div className='w-1/3 border p-2 rounded-lg bg-slate-50 shadow cursor-pointer'>Change Password</div>
+            <div className='w-1/3 border p-2 rounded-lg bg-slate-50 shadow cursor-pointer' onClick={handleChangePassword}>Change Password</div>
             </div>
             
          </div>

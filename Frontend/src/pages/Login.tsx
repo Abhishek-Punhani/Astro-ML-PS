@@ -96,6 +96,9 @@ export const LoginForm: React.FC = () => {
             )}
           </div>
           {error && <p className="text-red-500">{error}</p>}
+          <div>
+            <a  href="/auth/forgot-password">Forgot Password?</a>
+          </div>
           <button
             type="submit"
             className="w-full p-2 text-white bg-black rounded hover:bg-gray-800"
