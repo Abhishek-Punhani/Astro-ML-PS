@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Pixelify+Sans:wght@400..700&display=swap');
+
+.font-BG{
+    font-family: "Bricolage Grotesque", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
+    font-variation-settings:
+      "wdth" 100;
+}
+.font-pixel{
+    font-family: "Pixelify Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
+}
+
+.font-unic {
+    font-family: "Unica One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+.fadein{
+    animation: fadein ease 1.5s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+
+
+
+@keyframes fadein {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+  
+/* From Uiverse.io by Sameer2244 */ 
+.btn-container {
+  width: fit-content;
+  height: fit-content;
+  position: relative;
+  border-radius: 0.5rem;
+}
+
+.svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  transform: translate(-50%,-50%);
+  transition: 0.5s;
+}
+
+.btn {
+  background-color: transparent;
+  z-index: 10;
+  color: white;
+  border: 1.5px solid white;
+  padding: 0.5rem 2rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 0.5rem;
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.btn-container:hover {
+  box-shadow: rgba(153, 201, 255, 0.8) 0px 0px 54px;
+}
+
+.btn:hover {
+  background-color: rgb(33, 33, 33,0.4);
+}
+
+
+
+.btn:active {
+  transform: scale(1.05);
+}
