@@ -1,18 +1,13 @@
-import HomePage from "../components/HomePage"
+import HomePage from "../components/HomePage";
 
-export const Home : React.FC =()=> {
+export const Home: React.FC = () => {
   return (
-   <>
-   <div>
-    
+    <>
+      <div>
+        <HomePage />
+      </div>
+    </>
+  );
+};
 
-   
-    
-    <HomePage/>
-  
-   </div>
-   </>
-  )
-}
-
-export default Home
+export default Home;

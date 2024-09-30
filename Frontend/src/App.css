@@ -1,44 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Pixelify+Sans:wght@400..700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Pixelify+Sans:wght@400..700&display=swap");
 
-.font-BG{
-    font-family: "Bricolage Grotesque", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: 500;
-    font-style: normal;
-    font-variation-settings:
-      "wdth" 100;
+.font-BG {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  font-variation-settings: "wdth" 100;
 }
-.font-pixel{
-    font-family: "Pixelify Sans", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: 500;
-    font-style: normal;
+.font-pixel {
+  font-family: "Pixelify Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
 }
 
 .font-unic {
-    font-family: "Unica One", sans-serif;
-    font-weight: 400;
-    font-style: normal;
-  }
-.fadein{
-    animation: fadein ease 1.5s;
-    animation-iteration-count: 1;
-    animation-fill-mode: forwards;
+  font-family: "Unica One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
-
-
+.fadein {
+  animation: fadein ease 1.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
 
 @keyframes fadein {
-    0% {
-        opacity: 0;
-    }
+  0% {
+    opacity: 0;
+  }
 
-    100% {
-        opacity: 1;
-    }
+  100% {
+    opacity: 1;
+  }
 }
-  
-/* From Uiverse.io by Sameer2244 */ 
+
+/* From Uiverse.io by Sameer2244 */
 .btn-container {
   width: fit-content;
   height: fit-content;
@@ -51,7 +48,7 @@
   top: 50%;
   left: 50%;
   z-index: -1;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
   transition: 0.5s;
 }
 
@@ -73,10 +70,8 @@
 }
 
 .btn:hover {
-  background-color: rgb(33, 33, 33,0.4);
+  background-color: rgb(33, 33, 33, 0.4);
 }
-
-
 
 .btn:active {
   transform: scale(1.05);

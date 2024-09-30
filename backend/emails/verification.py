@@ -2,24 +2,25 @@ import smtplib as smt
 import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-import dotenv
 from datetime import datetime
+import dotenv
 
 dotenv.load_dotenv()
 
-smtp_server = 'smtp.gmail.com'
+smtp_server = "smtp.gmail.com"
 smtp_port = 587
 provider = os.getenv("moon_analyzer_provider")  # Ensure valid sender email
-emps = os.getenv('moon_analyzer_emps')
+emps = os.getenv("moon_analyzer_emps")
+
 
 def send_verification_email(username, usermail, otp):
-    msg = MIMEMultipart('alternative')  # Dual format (HTML and Plain Text)
-    msg['From'] = provider
-    msg['To'] = usermail
-    msg['Subject'] = "Verify Your Email Address"
-    msg['Reply-To'] = provider  # Valid reply address
-    msg['X-Mailer'] = 'Python-Mailer'  # Custom header to avoid spam triggers
-    msg['X-Priority'] = '3'  # Priority should not be set to 1 unless necessary
+    msg = MIMEMultipart("alternative")  # Dual format (HTML and Plain Text)
+    msg["From"] = provider
+    msg["To"] = usermail
+    msg["Subject"] = "Verify Your Email Address"
+    msg["Reply-To"] = provider  # Valid reply address
+    msg["X-Mailer"] = "Python-Mailer"  # Custom header to avoid spam triggers
+    msg["X-Priority"] = "3"  # Priority should not be set to 1 unless necessary
 
     # Plain text version (important for spam avoidance)
     plain_content = f"""
@@ -265,8 +266,8 @@ def send_verification_email(username, usermail, otp):
     """
 
     # Attach both plain and HTML content
-    msg.attach(MIMEText(plain_content, 'plain'))
-    msg.attach(MIMEText(html_content, 'html'))
+    msg.attach(MIMEText(plain_content, "plain"))
+    msg.attach(MIMEText(html_content, "html"))
 
     # SMTP connection
     try:

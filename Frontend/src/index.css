@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer components{
-    .h-form{
-        height: calc(100vh - 20px);
-    }
+@layer components {
+  .h-form {
+    height: calc(100vh - 20px);
+  }
 }

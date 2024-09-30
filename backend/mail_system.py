@@ -6,18 +6,19 @@ import dotenv
 
 dotenv.load_dotenv()
 
-smtp_server = 'smtp.gmail.com'
+smtp_server = "smtp.gmail.com"
 smtp_port = 587
 provider = os.getenv("moon_analyzer_provider")  # Ensure this is a valid email address
-emps = os.getenv('moon_analyzer_emps')
+emps = os.getenv("moon_analyzer_emps")
+
 
 def mailSender(username, usermail, otp):
-    msg = MIMEMultipart('alternative')  # Using 'alternative' to add plain text version
-    msg['From'] = provider
-    msg['To'] = usermail
-    msg['Subject'] = "Your Password Reset Code"
-    msg['Reply-To'] = provider  # Add a proper Reply-To header
-    msg['X-Mailer'] = 'Python-Mail'  # Custom header to avoid spam
+    msg = MIMEMultipart("alternative")  # Using 'alternative' to add plain text version
+    msg["From"] = provider
+    msg["To"] = usermail
+    msg["Subject"] = "Your Password Reset Code"
+    msg["Reply-To"] = provider  # Add a proper Reply-To header
+    msg["X-Mailer"] = "Python-Mail"  # Custom header to avoid spam
 
     # Create the HTML part
     html_content = f"""
@@ -94,8 +95,8 @@ def mailSender(username, usermail, otp):
     """
 
     # Attach both plain text and HTML content
-    msg.attach(MIMEText(plain_content, 'plain'))
-    msg.attach(MIMEText(html_content, 'html'))
+    msg.attach(MIMEText(plain_content, "plain"))
+    msg.attach(MIMEText(html_content, "html"))
 
     # SMTP setup
     try:
@@ -105,4 +106,3 @@ def mailSender(username, usermail, otp):
         s.sendmail(provider, usermail, msg.as_string())
     finally:
         s.quit()
-
