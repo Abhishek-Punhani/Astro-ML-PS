@@ -5,15 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chart Display</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
-    <link rel="stylesheet" href = "graph.css">
+    
+    <link rel="stylesheet" href="graph.css">
 </head>
 <body>
-    <h1>SDE + ASTRO</h1>
+    <h2>SDE + ASTRO
+    <p>remove the sample input and model files later on</p>
+    </h2>
+    <div class="tab-container">
+        <button class="tab-button active" data-tab="chart-1">Peak Flux</button>
+        <button class="tab-button" data-tab="chart-2">Rising Time</button>
+    </div>
+    
     <div class="graph-container">
-        <canvas id="chart-1" width="400" height="400"></canvas>
+        <div class="loader" id="loader-animation"></div>
+        <canvas id="chart-1" style="display:none;"></canvas>
+        <canvas id="chart-2" style="display:none;"></canvas>
         <div class="button-container">
             <button class="reset-button" id="reset-zoom">Reset Zoom</button>
+            <div class="loader" id="loader-animation-reset" style="display:none"></div>
         </div>
     </div>
 
