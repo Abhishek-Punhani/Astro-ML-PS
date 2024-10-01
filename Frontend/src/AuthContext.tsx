@@ -36,6 +36,7 @@ interface AuthContextType {
   ) => Promise<void>;
   verifyUserOtp: (otp: number, rtoken: string, token: string) => Promise<void>;
   resendOtp: (rtoken: string) => Promise<void>;
+  analyze: (data: any, token: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -229,6 +230,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const analyze = async (data: any, token: string) => {
+    const response = await fetch("http://localhost:8080/user/analyze", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ data }),
+    });
+    const res = await response.json();
+    if (response.ok) {
+      console.log(res);
+    } else {
+      throw new Error(res.error);
+    }
+  };
+
   const resendOtp = async (ref_token: string) => {
     if (user?.token) {
       const response = await fetch("http://localhost:8080/user/resend-otp", {
@@ -283,6 +302,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         changePassword,
         verifyUserOtp,
         resendOtp,
+        analyze,
       }}>
       {children}
     </AuthContext.Provider>

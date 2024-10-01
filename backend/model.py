@@ -1,9 +1,8 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-import numpy as np
 import json
-from astropy.io import fits
+from sqlalchemy import create_engine
+import numpy as np
 from scipy.signal import find_peaks, peak_prominences
+# from astropy.io import fits
 from db import get_db
 from models.peakResult import PeakResult
 from sklearn.preprocessing import StandardScaler
@@ -145,12 +144,8 @@ def apply_dbscan(features):
     return labels, silhouette_avg
 
 
-def returnable(extension):
-    data = fits.open("/home/nirved/Projects/Webdev/Inter IIT Astro SDE/MoonAnalyser/Astro-ML-PS/Chart/ch2_xsm_20240906_v1_level2" + extension)
-    Data = data[1].data
-
+def returnable(Data):
     d_new = fun(Data['RATE'].flatten())
-
     # Detect peaks on the original unsmoothed data
     peaks_dist, peaks_dist_unprocess = findpeaks(Data, d_new)
 
@@ -193,25 +188,3 @@ def returnable(extension):
     }
 
     return returndict
-
-
-# Commenting out plotting for now, but can be used for testing purposes
-if __name__ == "__main__":
-    returndict = returnable('.lc')
-#     plt.figure(figsize=(10, 6))
-#     plt.plot(returndict['x'], returndict['y'], label='Smoothed RATE', color='blue')
-#     unique_labels = np.unique(returndict['cluster_labels'])
-#     colors = plt.colormaps['rainbow'](np.linspace(0, 1, len(unique_labels)))
-#     for label, color in zip(unique_labels, colors):
-#         label_mask = np.array(returndict['cluster_labels']) == label
-#         if label == -1:
-#             plt.scatter(np.array(returndict['time_of_occurances'])[label_mask], np.array(returndict['time_corresponding_peak_flux'])[label_mask], color='black', label='Outliers', s=50)
-#         else:
-#             plt.scatter(np.array(returndict['time_of_occurances'])[label_mask], np.array(returndict['time_corresponding_peak_flux'])[label_mask], color=color, label=f'Cluster {label}', s=50)
-#     plt.title('X-ray Burst Analysis with DBSCAN Clusters and Outliers (Smoothed Data)')
-#     plt.xlabel('Time')
-#     plt.ylabel('Smoothed Rate')
-#     plt.legend()
-#     plt.grid(True)
-#     plt.show()
-#     print(f"Silhouette Score: {returndict['silhouette_avg']}")

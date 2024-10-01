@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useAuth } from "../AuthContext";
 import '../utils/graph.css'
 import * as XLSX from 'xlsx';
 import {plotGraph1,plotGraph2,fetchData} from '../utils/graph.js';
@@ -8,10 +9,11 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin);
 declare const astro: any;
 const HomePage = () => {
-  
+  const [error, setError] = useState<string | null>(null);
+  const { analyze, user } = useAuth();
   useEffect(() => {
     const script = document.createElement("script");
-    script.src = "/fits.js"; // Path where fits.js is located
+    script.src = "/fits.js";
     script.onload = () => {
       if ((window as any).astro && (window as any).astro.FITS) {
         console.log("astro.FITS loaded and ready");
@@ -25,21 +27,26 @@ const HomePage = () => {
       document.body.removeChild(script);
     };
   }, []);
-  const handleFileChange = (selectedFile: File | null) => {
-    const file = selectedFile;
-    const extension = file?.name.split(".").pop();
-    if (extension == "lc") {
-      if (file && (window as any).astro?.FITS) {
-        const fits = new (window as any).astro.FITS(file, () => {
-          const hdu = fits.getHDU();
-          const imageData = hdu.data;
-          let dataArray = []
-          let table = fits.getDataUnit(1);
-          table.getRows(0, imageData.rows, function (rows: any) {
-            dataArray.push(rows);
+  const handleFileChange = (selectedFile: File | null): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const file = selectedFile;
+      const extension = file?.name.split(".").pop();
+
+      if (extension === "lc") {
+        if (file && (window as any).astro?.FITS) {
+          const fits = new (window as any).astro.FITS(file, () => {
+            const hdu = fits.getHDU();
+            const imageData = hdu.data;
+            const data: any = [];
+            let table = fits.getDataUnit(1);
+            table.getRows(0, imageData.rows, function (rows: any) {
+              data.push(rows);
+              resolve(data);
+            });
           });
-        });
-      }
+        } else {
+          reject(new Error("FITS library not found or file is invalid"));
+        }
       
     } else if(extension == "xls"||extension == "xlsx" || extension == "csv"){
       const file = selectedFile;
@@ -85,8 +92,13 @@ const HomePage = () => {
   const resetZoomRef = useRef<HTMLButtonElement | null>(null)
   const loaderAnimationResetRef = useRef<HTMLDivElement | null>(null)
   const onsubmit = (data: any) => {
-    console.log(data);
-    handleFileChange(fileInput.current?.files?.[0] ?? null);
+    try {
+      let res = await handleFileChange(fileInput.current?.files?.[0] ?? null);
+      await analyze(res, user?.token as string);
+    } catch (error) {
+      setError("Something Went Wrong!");
+      console.log(error);
+    }
     setGraphData(data);
     //for testing purposes
     const ctx = ctxRef.current?.getContext('2d');
@@ -155,6 +167,7 @@ const HomePage = () => {
         />
 
         <div className="btn-container">
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <button className="btn" type="submit">
             Analyse
           </button>
