@@ -1,13 +1,13 @@
 import { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useAuth } from "../AuthContext";
 declare const astro: any;
 const HomePage = () => {
-  const [header, setHeader] = useState(null);
-  const [imageData, setImageData] = useState(null);
   const [error, setError] = useState<string | null>(null);
+  const { analyze, user } = useAuth();
   useEffect(() => {
     const script = document.createElement("script");
-    script.src = "/fits.js"; // Path where fits.js is located
+    script.src = "/fits.js";
     script.onload = () => {
       if ((window as any).astro && (window as any).astro.FITS) {
         console.log("astro.FITS loaded and ready");
@@ -21,42 +21,60 @@ const HomePage = () => {
       document.body.removeChild(script);
     };
   }, []);
-  const handleFileChange = (selectedFile: File | null) => {
-    const file = selectedFile;
-    const extension = file?.name.split(".").pop();
-    if (extension == "lc") {
-      if (file && (window as any).astro?.FITS) {
-        const fits = new (window as any).astro.FITS(file, () => {
-          const hdu = fits.getHDU();
-          const header = hdu.header; // Full header object
-          const imageData = hdu.data;
-          setHeader(header);
-          setImageData(imageData);
-          console.log(header);
-          console.log(imageData);
-          let table = fits.getDataUnit(1);
-          table.getRows(0, imageData.rows, function (rows: any) {
-            console.log(rows);
+
+  const handleFileChange = (selectedFile: File | null): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const file = selectedFile;
+      const extension = file?.name.split(".").pop();
+
+      if (extension === "lc") {
+        if (file && (window as any).astro?.FITS) {
+          const fits = new (window as any).astro.FITS(file, () => {
+            const hdu = fits.getHDU();
+            const imageData = hdu.data;
+            const data: any = [];
+            let table = fits.getDataUnit(1);
+            table.getRows(0, imageData.rows, function (rows: any) {
+              data.push(rows);
+              resolve(data);
+            });
           });
-        });
+        } else {
+          reject(new Error("FITS library not found or file is invalid"));
+        }
+      } else if (extension === "txt" || extension === "asc") {
+        const reader = new FileReader();
+        reader.onload = function () {
+          const data = reader.result;
+          if (data == null) {
+            reject(new Error("Invalid File"));
+          } else {
+            resolve(data);
+          }
+        };
+        reader.onerror = function () {
+          reject(new Error("Error reading the file"));
+        };
+        reader.readAsArrayBuffer(file as File); // Use appropriate method based on your data type
+      } else {
+        reject(new Error("Unsupported file type"));
       }
-    } else if (extension == "txt" || extension == "asc") {
-      let reader = new FileReader();
-      reader.onload = function () {
-        let data = reader.result;
-        console.log(data);
-      };
-      reader.readAsText(file as Blob);
-    }
+    });
   };
+
   const { register, handleSubmit } = useForm();
   const fileInput = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState(
     fileInput.current?.files?.[0]?.name ?? "Select File"
   );
-  const onsubmit = (data: any) => {
-    console.log(data);
-    handleFileChange(fileInput.current?.files?.[0] ?? null);
+  const onsubmit = async () => {
+    try {
+      let res = await handleFileChange(fileInput.current?.files?.[0] ?? null);
+      await analyze(res, user?.token as string);
+    } catch (error) {
+      setError("Something Went Wrong!");
+      console.log(error);
+    }
   };
   return (
     <div className="flex flex-col items-center justify-center h-screen w-screen">
@@ -89,6 +107,7 @@ const HomePage = () => {
         />
 
         <div className="btn-container">
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <button className="btn" type="submit">
             Analyse
           </button>
