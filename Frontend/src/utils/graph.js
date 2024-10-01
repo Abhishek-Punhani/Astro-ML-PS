@@ -95,6 +95,7 @@ function plotGraph1(data,ctx,resetZoom,loaderAnimation) {
                 
             }
         }
+        
     });
 
     resetZoom.addEventListener('click', () => {
@@ -107,6 +108,7 @@ function plotGraph1(data,ctx,resetZoom,loaderAnimation) {
         }, 500);
         
     });
+    return chart1;
 }
 
 
@@ -201,5 +203,6 @@ function plotGraph2(data,ctx,resetZoom,loaderAnimation) {
         },500);
         
     });
+    return chart2;
 }
 export{plotGraph1,plotGraph2,fetchData}
