@@ -1,6 +1,7 @@
 import os
-import random
 from datetime import datetime, timezone, timedelta
+import random
+import numpy as np
 from flask import jsonify, request, g
 from db import get_db
 from models.user import User as users
@@ -8,6 +9,22 @@ from models.otp import OTP
 import bcrypt
 import jwt
 from emails.verification import send_verification_email
+from model import returnable
+
+
+def convert_to_serializable(obj):
+    if isinstance(obj, np.recarray):
+        return [dict(zip(obj.dtype.names, row)) for row in obj]
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, np.generic):
+        return obj.item()
+    elif isinstance(obj, dict):
+        return {k: convert_to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_serializable(i) for i in obj]
+    else:
+        return obj
 
 
 def get_user_profile():
@@ -324,4 +341,65 @@ def resendOtp():
         )
 
     except Exception:
+        return jsonify({"error": "Internal server error"}), 500
+
+
+def analyze():
+    try:
+        # Get the Authorization header and check for token
+        auth_header = request.headers.get("authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Authorization token missing or invalid"}), 401
+
+        token = auth_header.split(" ")[1]
+
+        # Decode the token
+        try:
+            jwt.decode(token, os.getenv("AUTH_SECRET"), algorithms="HS256")
+            g.token = token
+        except Exception:
+            return jsonify({"error": "Token expired or invalid"}), 400
+        data = request.get_json()
+
+        # Check if 'data' key exists and is a list
+        if "data" in data and isinstance(data["data"], list):
+            req_data = data["data"][0]
+
+            # Ensure 'FRACEXP' is set to 0 if it's None for each entry
+            for entry in req_data:
+                if isinstance(entry, dict):  # Ensure each entry is a dictionary
+                    if entry.get("FRACEXP") is None:
+                        entry["FRACEXP"] = 0
+
+            # Define dtype for structured array
+            dtype = np.dtype(
+                [
+                    ("TIME", "f8"),  # float64
+                    ("RATE", "f8"),  # float64
+                    ("ERROR", "f8"),  # float64
+                    ("FRACEXP", "i4"),  # int32
+                ]
+            )
+
+            # Create data tuples from req_data
+            data_tuples = [
+                (entry["TIME"], entry["RATE"], entry["ERROR"], entry["FRACEXP"])
+                for entry in req_data
+            ]
+
+            # Convert to recarray
+            rec_array = np.array(data_tuples, dtype=dtype).view(np.recarray)
+            print(rec_array)
+
+            # Call the returnable function
+            res = returnable(rec_array)
+            res = convert_to_serializable(res)
+
+            return jsonify({"res": res})
+
+        else:
+            return jsonify({"error": "Invalid input data format"}), 400
+
+    except Exception as e:
+        print(f"Exception: {e}")
         return jsonify({"error": "Internal server error"}), 500
