@@ -146,7 +146,7 @@ def apply_dbscan(features):
 
 
 def returnable(extension):
-    data = fits.open("ch2_xsm_20240906_v1_level2" + extension)
+    data = fits.open("/home/nirved/Projects/Webdev/Inter IIT Astro SDE/MoonAnalyser/Astro-ML-PS/Chart/ch2_xsm_20240906_v1_level2" + extension)
     Data = data[1].data
 
     d_new = fun(Data['RATE'].flatten())
@@ -196,8 +196,8 @@ def returnable(extension):
 
 
 # Commenting out plotting for now, but can be used for testing purposes
-# if __name__ == "__main__":
-#     returndict = returnable('.lc')
+if __name__ == "__main__":
+    returndict = returnable('.lc')
 #     plt.figure(figsize=(10, 6))
 #     plt.plot(returndict['x'], returndict['y'], label='Smoothed RATE', color='blue')
 #     unique_labels = np.unique(returndict['cluster_labels'])

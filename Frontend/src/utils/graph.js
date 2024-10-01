@@ -1,16 +1,20 @@
+import { Chart, CategoryScale, LinearScale, PointElement, LineElement, LineController,ScatterController,Tooltip } from 'chart.js';
+
+// Register the components you're using
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, LineController,ScatterController,Tooltip);
+
 async function fetchData(url) {
     let response = await fetch(url);
     let data = await response.json();
     let result = JSON.stringify(data);
     return result;
 }
-
-function plotGraph1(data) {
+function plotGraph1(data,ctx,resetZoom,loaderAnimation) {
     let X = data[0];
     let Y = data[1];
     let MF = data[2];
     let TOC = data[3];
-    const ctx = document.getElementById('chart-1').getContext('2d');
+    
     const zoomGestures = {
         pan: {
             enabled: true,
@@ -93,24 +97,24 @@ function plotGraph1(data) {
         }
     });
 
-    document.getElementById("reset-zoom").addEventListener('click', () => {
-        document.getElementById("reset-zoom").style.display="none";
-        document.getElementById("loader-animation-reset").style.display="block";
-        setTimeout(()=>{chart1.resetZoom();
-        document.getElementById("reset-zoom").style.display="block";
-        document.getElementById("loader-animation-reset").style.display="none";
-        },500);
+    resetZoom.addEventListener('click', () => {
+        resetZoom.style.display = "none";
+        loaderAnimation.style.display = "block";
+        setTimeout(() => {
+            chart1.resetZoom();
+            resetZoom.style.display = "block";
+            loaderAnimation.style.display = "none";
+        }, 500);
         
     });
 }
 
 
-function plotGraph2(data) {
+function plotGraph2(data,ctx,resetZoom,loaderAnimation) {
     let X = data[0];
     let Y = data[1];
     let leftx = data[4];
     let lefty = data[5];
-    const ctx = document.getElementById('chart-2').getContext('2d');
     const zoomGestures = {
         pan: {
             enabled: true,
@@ -187,38 +191,15 @@ function plotGraph2(data) {
         }
     });
 
-    document.getElementById("reset-zoom").addEventListener('click', () => {
-        document.getElementById("reset-zoom").style.display="none";
-        document.getElementById("loader-animation-reset").style.display="block";
+    resetZoom.addEventListener('click', () => {
+        resetZoom.style.display="none";
+        loaderAnimation.style.display="block";
         
         setTimeout(()=>{chart2.resetZoom();
-        document.getElementById("reset-zoom").style.display="block";
-        document.getElementById("loader-animation-reset").style.display="none";
+        resetZoom.style.display="block";
+        loaderAnimation.style.display="none";
         },500);
         
     });
 }
-
-let g1Data =  fetchData('http://127.0.0.1:5000/data');
-g1Data.then(response => {
-    response = JSON.parse(response);
-    console.log(response)
-    plotGraph1(response);
-    document.getElementById("chart-1").style.display="block";
-    document.getElementById("loader-animation").style.display="none";
-    plotGraph2(response);
-})
-// Handling tab switching
-document.querySelectorAll('.tab-button').forEach(button => {
-    button.addEventListener('click', () => {
-        const activeTab = button.dataset.tab;
-
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        button.classList.add('active');
-
-        document.getElementById('chart-1').style.display = (activeTab === 'chart-1') ? 'block' : 'none';
-        document.getElementById('chart-2').style.display = (activeTab === 'chart-2') ? 'block' : 'none';
-    });
-});
+export{plotGraph1,plotGraph2,fetchData}
