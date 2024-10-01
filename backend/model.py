@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from scipy.ndimage import gaussian_filter1d
 import numpy as np
 import json
 from astropy.io import fits
@@ -52,10 +51,14 @@ def process_and_save(extension, user_id):
         print(f"Results for user {user_id} saved successfully!")
 
 
-# Data processing functions
-def gaussian_smoothing(data, sigma=2):
-    return gaussian_filter1d(data, sigma=sigma)
-
+def fun(a):
+    b = a.copy()
+    for i in range(a.size):
+        if i >= 2 and i <= a.size - 3:
+            b[i] = (a[i-2] + a[i-1] + a[i] + a[i+1] + a[i+2]) / 5
+        else:
+            b[i] = a[i]
+    return b
 
 def riseTime(Data, d_new, peaks_dist, peaks_dist_unprocess):
     rise_time = []
@@ -146,8 +149,7 @@ def returnable(extension):
     data = fits.open("ch2_xsm_20240906_v1_level2" + extension)
     Data = data[1].data
 
-    # Apply Gaussian smoothing for visualization
-    d_new = gaussian_smoothing(Data["RATE"].flatten(), sigma=2)
+    d_new = fun(Data['RATE'].flatten())
 
     # Detect peaks on the original unsmoothed data
     peaks_dist, peaks_dist_unprocess = findpeaks(Data, d_new)
