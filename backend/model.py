@@ -2,6 +2,7 @@ import json
 from sqlalchemy import create_engine
 import numpy as np
 from scipy.signal import find_peaks, peak_prominences
+
 # from astropy.io import fits
 from db import get_db
 from models.peakResult import PeakResult
@@ -54,10 +55,11 @@ def fun(a):
     b = a.copy()
     for i in range(a.size):
         if i >= 2 and i <= a.size - 3:
-            b[i] = (a[i-2] + a[i-1] + a[i] + a[i+1] + a[i+2]) / 5
+            b[i] = (a[i - 2] + a[i - 1] + a[i] + a[i + 1] + a[i + 2]) / 5
         else:
             b[i] = a[i]
     return b
+
 
 def riseTime(Data, d_new, peaks_dist, peaks_dist_unprocess):
     rise_time = []
@@ -145,7 +147,7 @@ def apply_dbscan(features):
 
 
 def returnable(Data):
-    d_new = fun(Data['RATE'].flatten())
+    d_new = fun(Data["RATE"].flatten())
     # Detect peaks on the original unsmoothed data
     peaks_dist, peaks_dist_unprocess = findpeaks(Data, d_new)
 

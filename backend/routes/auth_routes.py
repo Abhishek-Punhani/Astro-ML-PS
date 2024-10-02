@@ -9,7 +9,7 @@ from controllers.auth_controller import (
     sendOtp,
     forgot_password,
     resendOtp,
-    githubCallback
+    githubCallback,
 )
 
 auth_blueprint = Blueprint("auth", __name__)
