@@ -2,6 +2,7 @@ import os
 import random
 from datetime import datetime, timezone, timedelta
 from flask import jsonify, request, make_response
+import requests
 from sqlalchemy.exc import IntegrityError
 import bcrypt
 import jwt
@@ -594,4 +595,120 @@ def resendOtp():
         )
 
     except Exception:
+        return jsonify({"error": "Internal server error"}), 500
+
+
+
+def githubCallback():
+    try:
+        data=request.get_json()
+        code=data["code"]
+        try:
+            response = requests.post(
+            'https://github.com/login/oauth/access_token',
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            json={
+                'client_id': os.getenv("GITHUB_CLIENT_ID"),
+                'client_secret': os.getenv("GITHUB_CLIENT_SECRET"),
+                'code': code,
+            },
+            timeout=10  # 10 seconds timeout
+        )
+        except Exception :
+            return jsonify({"error": "Internal server error"}), 500
+        token_data = response.json()
+        access_token = token_data.get('access_token')
+        user = requests.get(
+            'https://api.github.com/user',
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': f'Bearer {access_token}'
+            },
+            timeout=10  # 10 seconds timeout
+        ).json()
+        
+        email=user["email"]
+        username=user["login"]
+        gitId=str(user["id"])
+        
+
+        # Validate required fields
+        if not all([email, username, gitId]):
+            return jsonify({"error": "Missing required fields."}), 400
+        db=get_db()
+        # Check if the user already exists using email
+        existing_user = db.query(users).filter(users.email == email).first()
+
+        if not existing_user:
+            # User does not exist, create a new one
+            hashed_gitId = bcrypt.hashpw(
+                gitId.encode("utf-8"), bcrypt.gensalt()
+            ).decode("utf-8")
+            new_user = users(email=email, username=username, password=hashed_gitId)
+            db.add(new_user)
+            db.commit()
+            user = new_user
+        else:
+            # User exists, log them in
+            user = existing_user
+
+        # Generate a unique token from email ID with 1-sec expiration
+        token = jwt.encode(
+            {
+                "email": user.email,
+                "exp": datetime.now(timezone.utc) + timedelta(seconds=330),
+            },
+            os.getenv("AUTH_SECRET"),
+            algorithm="HS256",
+        ).decode("utf-8")
+
+        rtoken = jwt.encode(
+            {
+                "email": user.email,
+                "exp": datetime.now(timezone.utc) + timedelta(minutes=20),
+            },
+            os.getenv("REFRESH_TOKEN_SECRET"),
+            algorithm="HS256",
+        ).decode("utf-8")
+
+        # Generate a 6-digit OTP
+        otp = random.randint(100000, 999999)
+
+        # Convert OTP to string and append the token
+        otp_with_token = f"{otp}-{token}"
+
+        # Cleanup expired OTPs (older than 330 seconds)
+        expiry_time = datetime.now(timezone.utc) - timedelta(seconds=330)
+        db.query(OTP).filter(OTP.created_at < expiry_time).delete()
+
+        # Check if an OTP entry already exists for this email and delete it
+        existing_entry = db.query(OTP).filter(OTP.email == user.email).first()
+        if existing_entry:
+            db.delete(existing_entry)
+            db.commit()
+
+        # Create and save the new OTP entry with the modified OTP
+        new_otp_entry = OTP(
+            otp=otp_with_token, email=user.email, created_at=datetime.now(timezone.utc)
+        )
+        db.add(new_otp_entry)
+        db.commit()
+
+        # Send verification email (implement this function)
+        send_verification_email(user.username, user.email, otp)
+
+        # Respond with a success message and the token
+        return (
+            jsonify(
+                {"message": "OTP sent successfully.", "token": token, "rtoken": rtoken}
+            ),
+            200,
+        )
+
+    except Exception as e:
+        print(e)
         return jsonify({"error": "Internal server error"}), 500

@@ -19,6 +19,7 @@ import ForgotPasswordEmail from "./pages/ForgotPassword";
 import MailSuccess from "./pages/mailsent";
 import ResetPassword from "./pages/ResetPassword";
 import ChangePassword from "./pages/ChangePassword";
+import { GitHubCallback } from "./pages/githubCallback";
 
 const AppContent: React.FC = () => {
   const { user, vtoken, access } = useAuth();
@@ -33,6 +34,10 @@ const AppContent: React.FC = () => {
         <Navbar />
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route
+            path="/auth/github/callback"
+            element={token ? <Navigate to="/" /> : <GitHubCallback />}
+          />
           <Route path="/analyser" element={token ? <Home /> : <LoginForm />} />
           <Route
             path="/login"
