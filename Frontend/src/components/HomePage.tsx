@@ -14,6 +14,7 @@ const HomePage = () => {
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "/fits.js";
+    script.src = "/fits.js";
     script.onload = () => {
       if ((window as any).astro && (window as any).astro.FITS) {
         console.log("astro.FITS loaded and ready");
@@ -223,6 +224,7 @@ right.forEach((ele: number) => {
         />
 
         <div className="btn-container">
+          {error && <p className="text-sm text-red-500">{error}</p>}
           {error && <p className="text-sm text-red-500">{error}</p>}
           <button className="btn" type="submit">
             Analyse

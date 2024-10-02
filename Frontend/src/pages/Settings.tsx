@@ -47,7 +47,7 @@ const Settings = () => {
                   <input
                     type="text"
                     className="w-2/5 text-center border p-2 bg-transparent outline-none rounded-lg text-lg"
-                    defaultValue={"Nirved Mishra"}
+                    defaultValue={user?.username}
                     {...register("username")}
                   />
                 </div>
@@ -56,7 +56,7 @@ const Settings = () => {
                   <input
                     type="text"
                     className="w-2/5 text-center border p-2 rounded-lg outline-none bg-transparent text-lg bg-slate-50"
-                    defaultValue={"nirved431@gmail"}
+                    defaultValue={user?.email}
                     {...register("email")}
                   />
                 </div>

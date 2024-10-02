@@ -37,6 +37,7 @@ interface AuthContextType {
   verifyUserOtp: (otp: number, rtoken: string, token: string) => Promise<void>;
   resendOtp: (rtoken: string) => Promise<void>;
   analyze: (data: any, token: string) => Promise<void>;
+  githubLogin: (code: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -284,6 +285,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const githubLogin = async (code: string) => {
+    const response = await fetch("http://localhost:8080/auth/github/callback", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = await response.json();
+    if (response.ok) {
+      SetVtoken(data.token);
+      SetReftoken(data.rtoken);
+      return data.token;
+    } else {
+      throw new Error(data.error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -303,6 +321,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         verifyUserOtp,
         resendOtp,
         analyze,
+        githubLogin,
       }}>
       {children}
     </AuthContext.Provider>

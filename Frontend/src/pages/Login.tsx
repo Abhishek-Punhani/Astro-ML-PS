@@ -7,6 +7,7 @@ import { useAuth } from "../AuthContext";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
+import { GithubLoginButton } from "react-social-login-buttons";
 
 interface GoogleUser {
   username: string;
@@ -20,6 +21,7 @@ export const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const { login, googleLogin } = useAuth();
   const clientid = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID as string;
+  const gitclientID = import.meta.env.REACT_APP_GITHUB_CLIENT_ID as string;
   const {
     register,
     handleSubmit,
@@ -44,6 +46,15 @@ export const LoginForm: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const GitHubLoginButton: React.FC = () => {
+    const loginWithGitHub = () => {
+      const redirectURI = "http://localhost:5173/auth/github/callback";
+      window.location.href = `https://github.com/login/oauth/authorize?client_id=${gitclientID}&redirect_uri=${redirectURI}`;
+    };
+
+    return <GithubLoginButton onClick={loginWithGitHub}></GithubLoginButton>;
   };
 
   const onSubmit = async (data: any) => {
@@ -127,6 +138,9 @@ export const LoginForm: React.FC = () => {
                 }}
               />
             </GoogleOAuthProvider>
+          </div>
+          <div>
+            <GitHubLoginButton />
           </div>
           <div className="text-center">
             <p>
