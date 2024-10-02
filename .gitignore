@@ -14,7 +14,7 @@ Frontend/dist/
 Frontend/dist-ssr/
 Frontend/*.local
 Frontend/.env
-
+Chart/
 
 # Backend specific
 backend/venv/

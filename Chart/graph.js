@@ -202,6 +202,7 @@ function plotGraph2(data) {
 let g1Data =  fetchData('http://127.0.0.1:5000/data');
 g1Data.then(response => {
     response = JSON.parse(response);
+    console.log(response)
     plotGraph1(response);
     document.getElementById("chart-1").style.display="block";
     document.getElementById("loader-animation").style.display="none";

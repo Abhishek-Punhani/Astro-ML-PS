@@ -243,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     });
     const res = await response.json();
     if (response.ok) {
-      console.log(res);
+      return res;
     } else {
       throw new Error(res.error);
     }

@@ -598,48 +598,46 @@ def resendOtp():
         return jsonify({"error": "Internal server error"}), 500
 
 
-
 def githubCallback():
     try:
-        data=request.get_json()
-        code=data["code"]
+        data = request.get_json()
+        code = data["code"]
         try:
             response = requests.post(
-            'https://github.com/login/oauth/access_token',
-            headers={
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            json={
-                'client_id': os.getenv("GITHUB_CLIENT_ID"),
-                'client_secret': os.getenv("GITHUB_CLIENT_SECRET"),
-                'code': code,
-            },
-            timeout=10  # 10 seconds timeout
-        )
-        except Exception :
+                "https://github.com/login/oauth/access_token",
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                json={
+                    "client_id": os.getenv("GITHUB_CLIENT_ID"),
+                    "client_secret": os.getenv("GITHUB_CLIENT_SECRET"),
+                    "code": code,
+                },
+                timeout=10,  # 10 seconds timeout
+            )
+        except Exception:
             return jsonify({"error": "Internal server error"}), 500
         token_data = response.json()
-        access_token = token_data.get('access_token')
+        access_token = token_data.get("access_token")
         user = requests.get(
-            'https://api.github.com/user',
+            "https://api.github.com/user",
             headers={
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': f'Bearer {access_token}'
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": f"Bearer {access_token}",
             },
-            timeout=10  # 10 seconds timeout
+            timeout=10,  # 10 seconds timeout
         ).json()
-        
-        email=user["email"]
-        username=user["login"]
-        gitId=str(user["id"])
-        
+
+        email = user["email"]
+        username = user["login"]
+        gitId = str(user["id"])
 
         # Validate required fields
         if not all([email, username, gitId]):
             return jsonify({"error": "Missing required fields."}), 400
-        db=get_db()
+        db = get_db()
         # Check if the user already exists using email
         existing_user = db.query(users).filter(users.email == email).first()
 
