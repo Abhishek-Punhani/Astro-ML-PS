@@ -23,7 +23,7 @@ interface AuthContextType {
   googleLogin: (
     email: string,
     username: string,
-    googleId: string
+    authId: string
   ) => Promise<void>;
   logout: () => void;
   verify: (otp: number, token: string) => Promise<void>;
@@ -128,13 +128,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const googleLogin = async (
     email: string,
     username: string,
-    googleId: string
+    authId: string
   ) => {
     const response = await fetch("http://localhost:8080/auth/google-login", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, username, googleId }),
+      body: JSON.stringify({ email, username, authId }),
     });
     const data = await response.json();
     if (response.ok) {

@@ -11,13 +11,13 @@ from models.user import User as users
 from models.otp import OTP
 from emails.verification import send_verification_email
 from emails.forgotpass import send_reset_password_email
+from utils.validation import create_user
 
 
-def register():
+async def register():
     try:
         db = get_db()
         data = request.get_json()
-
         if (
             not data
             or "username" not in data
@@ -26,26 +26,11 @@ def register():
         ):
             return jsonify({"error": "Missing required fields."}), 400
 
-        username = data["username"]
-        email = data["email"]
-        password = data["password"]
+        new_user = await create_user(data)
+        print(new_user)
+        if new_user["error"]:
+            return jsonify({"error": new_user["error"]}), 500
 
-        existing_user = db.query(users).filter(users.email == email).first()
-        if existing_user:
-            return jsonify({"error": "User already exists"}), 400
-
-        hashed_password = bcrypt.hashpw(
-            password.encode("utf-8"), bcrypt.gensalt()
-        ).decode("utf-8")
-        new_user = users(
-            email=email,
-            password=hashed_password,
-            username=username,
-        )
-
-        db.add(new_user)
-        db.commit()
-        # Generate a unique token from email ID with 1-sec expiration
         token = jwt.encode(
             {
                 "email": new_user.email,
@@ -112,6 +97,8 @@ def register():
     except Exception as e:
         print(f"Error in /auth/register: {e}")
         return jsonify({"error": "Internal server error"}), 500
+    finally:
+        db.close()
 
 
 def login():
@@ -242,7 +229,7 @@ def logout():
         return jsonify({"error": "Internal server error"}), 500
 
 
-def google_login():
+async def google_login():
     try:
         db = get_db()
         data = request.get_json()
@@ -250,26 +237,22 @@ def google_login():
         # Extracting necessary parameters from the request body
         email = data.get("email")
         username = data.get("username")
-        googleId = data.get("googleId")
+        authId = data.get("authId")
 
         # Validate required fields
-        if not all([email, username, googleId]):
+        if not all([email, username, authId]):
             return jsonify({"error": "Missing required fields."}), 400
 
         # Check if the user already exists using email
         existing_user = db.query(users).filter(users.email == email).first()
 
         if not existing_user:
-            # User does not exist, create a new one
-            hashed_googleId = bcrypt.hashpw(
-                googleId.encode("utf-8"), bcrypt.gensalt()
-            ).decode("utf-8")
-            new_user = users(email=email, username=username, password=hashed_googleId)
-            db.add(new_user)
-            db.commit()
-            user = new_user
+            try:
+                user = await create_user(data)
+            except Exception as e:
+                print(e)
+                return jsonify({"error": "Internal server error"}), 500
         else:
-            # User exists, log them in
             user = existing_user
 
         # Generate a unique token from email ID with 1-sec expiration
@@ -598,7 +581,7 @@ def resendOtp():
         return jsonify({"error": "Internal server error"}), 500
 
 
-def githubCallback():
+async def githubCallback():
     try:
         data = request.get_json()
         code = data["code"]
@@ -632,27 +615,24 @@ def githubCallback():
 
         email = user["email"]
         username = user["login"]
-        gitId = str(user["id"])
+        authId = str(user["id"])
 
         # Validate required fields
-        if not all([email, username, gitId]):
+        if not all([email, username, authId]):
             return jsonify({"error": "Missing required fields."}), 400
         db = get_db()
         # Check if the user already exists using email
         existing_user = db.query(users).filter(users.email == email).first()
 
         if not existing_user:
-            # User does not exist, create a new one
-            hashed_gitId = bcrypt.hashpw(
-                gitId.encode("utf-8"), bcrypt.gensalt()
-            ).decode("utf-8")
-            new_user = users(email=email, username=username, password=hashed_gitId)
-            db.add(new_user)
-            db.commit()
-            user = new_user
+            try:
+                user = await create_user([email, username, authId])
+            except Exception as e:
+                print(e)
+                return jsonify({"error": "Internal server error"}), 500
         else:
-            # User exists, log them in
             user = existing_user
+        db = get_db()
 
         # Generate a unique token from email ID with 1-sec expiration
         token = jwt.encode(
