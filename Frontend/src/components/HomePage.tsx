@@ -3,9 +3,10 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "../AuthContext";
 import "../utils/graph.css";
 import * as XLSX from "xlsx";
-import { plotGraph1, plotGraph2, plotGraph3 } from "../utils/graph.ts";
+import { plotGraph1, plotGraph2, plotGraph3 } from "../utils/graph";
 import { Chart } from "chart.js";
 import zoomPlugin from "chartjs-plugin-zoom";
+import { FaBackward } from "react-icons/fa";
 Chart.register(zoomPlugin);
 declare const astro: any;
 const HomePage = () => {
@@ -106,11 +107,10 @@ const HomePage = () => {
   const loaderAnimationResetRef = useRef<HTMLDivElement | null>(null);
   const onsubmit = async (data: any) => {
     const projectName = data.projectName;
-    console.log(projectName);
     try {
       let res = await handleFileChange(fileInput.current?.files?.[0] ?? null);
       let responseData = await analyze(res, user?.token as string);
-      console.log(responseData);
+      console.log(responseData, projectName);
       let X = responseData.res["x"];
       let Y = responseData.res["y"];
       let MF = responseData.res["time_of_occurances"];
@@ -202,7 +202,23 @@ const HomePage = () => {
       setError("Something Went Wrong!");
       console.log(error);
     }
-    //for testing purposes
+  };
+  const RemoveGraph = () => {
+    setisGraphReady(false);
+    if (GraphData1) {
+      GraphData1.destroy();
+    }
+    if (GraphData2) {
+      GraphData2.destroy();
+    }
+    if (GraphData3) {
+      GraphData3.destroy();
+    }
+    reset();
+    if (fileInput.current && fileInput.current.files) {
+      fileInput.current.value = ""; // Clear the file input
+    }
+    setFileName("Select File");
   };
   return (
     <div className="flex flex-col items-center justify-center h-screen w-screen">
@@ -211,7 +227,6 @@ const HomePage = () => {
           className="flex flex-col gap-12  justify-center items-center font-unic text-white fadein"
           onSubmit={handleSubmit(onsubmit)}>
           <h1 className="text-4xl font-bold">ANALYSE THE COSMOS</h1>
-
           <input
             type="text"
             placeholder="Project Name"
@@ -246,43 +261,36 @@ const HomePage = () => {
       )}
       {
         <div className={`${!isGraphReady && "hidden"}`}>
-          <div className="tab-container mt-20 gap-4" ref={tabContainerRef}>
+          <div className="w-full flex justify-between items-center">
             <button
-              className="tab-button active p-2 rounded-lg border text-white"
-              data-tab="chart-1">
-              Peak Flux
+              className="p-2 rounded-full h-10 border text-white "
+              onClick={RemoveGraph}>
+              <div className="flex justify-center items-center w-full gap-x-4">
+                <span className="flex items-center gap-2">
+                  <FaBackward />
+                </span>
+                <span>Back</span>
+              </div>
             </button>
-            <button
-              className="tab-button p-2 rounded-lg border text-white"
-              data-tab="chart-2">
-              Rising Time
-            </button>
-            <button
-              className="tab-button p-2 rounded-lg border text-white"
-              data-tab="chart-3">
-              Decay Time
-            </button>
-            <button
-              className="p-2 rounded-lg border text-white"
-              onClick={() => {
-                setisGraphReady(false);
-                if (GraphData1) {
-                  GraphData1.destroy();
-                }
-                if (GraphData2) {
-                  GraphData2.destroy();
-                }
-                if (GraphData3) {
-                  GraphData3.destroy();
-                }
-                reset();
-                if (fileInput.current && fileInput.current.files) {
-                  fileInput.current.value = ""; // Clear the file input
-                }
-                setFileName("Select File");
-              }}>
-              New Project
-            </button>
+            <div
+              className="tab-container gap-4 flex items-center justify-evenly "
+              ref={tabContainerRef}>
+              <button
+                className="tab-button active p-2 rounded-lg border text-white"
+                data-tab="chart-1">
+                Peak Flux
+              </button>
+              <button
+                className="tab-button p-2 rounded-lg border text-white"
+                data-tab="chart-2">
+                Rising Time
+              </button>
+              <button
+                className="tab-button p-2 rounded-lg border text-white"
+                data-tab="chart-3">
+                Decay Time
+              </button>
+            </div>
           </div>
 
           <div className="graph-container">

@@ -1,6 +1,6 @@
 import uuid
-from sqlalchemy import Column, String, Boolean
-from sqlalchemy.dialects.postgresql import UUID  # Use this if you're using PostgreSQL
+from sqlalchemy import Column, String, Boolean, ARRAY
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 
 # Create a Base class
@@ -21,6 +21,8 @@ class User(Base):
     password = Column(String, nullable=False)
     username = Column(String, nullable=False)
     isVerified = Column("isVerified", Boolean, default=False, nullable=False)
+
+    peak_result_ids = Column(ARRAY(UUID(as_uuid=True)), default=list, nullable=False)
 
     # Convert the UUID to UTF-8 encoded string before saving or using
     @property

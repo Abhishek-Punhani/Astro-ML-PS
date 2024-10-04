@@ -36,3 +36,4 @@ backend/.env
 
 # Additional general ignores
 *.local
+./test.html
