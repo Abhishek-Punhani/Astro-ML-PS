@@ -5,7 +5,8 @@ from controllers.user_controller import (
     verifyOtp,
     resendOtp,
     analyze,
-    save
+    save,
+    getData
 )
 
 user_blueprint = Blueprint("user", __name__)
@@ -17,3 +18,5 @@ user_blueprint.route("/verify-change-password", methods=["POST"])(verifyOtp)
 user_blueprint.route("/resend-otp", methods=["POST"])(resendOtp)
 user_blueprint.route("/analyze", methods=["POST"])(analyze)
 user_blueprint.route("/save", methods=["POST"])(save)
+user_blueprint.route("/get-project/<id>", methods=["GET"])(getData)
+

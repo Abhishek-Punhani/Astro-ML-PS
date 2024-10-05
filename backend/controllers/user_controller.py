@@ -433,8 +433,6 @@ def analyze():
         print(f"Exception: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-
-
 def save():
     try:
         # Get the Authorization header and check for token
@@ -510,6 +508,37 @@ def save():
 
         return jsonify({"message": "Data saved successfully" ,"project_name":project_name}), 200
         
+    except Exception as e:
+        print(f"Exception: {e}")
+        return jsonify({"error": "Internal server error."}), 500
+
+
+def getData(id):
+    try:
+        # Get the Authorization header and check for token
+        auth_header = request.headers.get("authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Authorization token missing or invalid"}), 401
+
+        token = auth_header.split(" ")[1]
+
+        # Decode the token
+        try:
+            jwt.decode(token, os.getenv("AUTH_SECRET"), algorithms=["HS256"])
+            g.token = token
+        except Exception:
+            return jsonify({"error": "Token expired or invalid."}), 400
+
+        if not id:
+            return jsonify({"error": "Missing required fields."}), 400
+
+        db = get_db()
+        result = db.query(PeakResult).filter(PeakResult.id == id).first()
+        if not result:
+            return jsonify({"error": "Data not found."}), 404
+
+        return jsonify({"data": result.to_dict()}), 200
+
     except Exception as e:
         print(f"Exception: {e}")
         return jsonify({"error": "Internal server error."}), 500

@@ -44,6 +44,7 @@ interface AuthContextType {
   analyze: (data: any, token: string) => Promise<void>;
   githubLogin: (code: string) => Promise<void>;
   saveResult: (data: any, token: string) => Promise<void>;
+  getData: (token: string, id: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -332,6 +333,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const getData = async (token: string, id: string) => {
+    const response = await fetch(
+      `http://localhost:8080/user/get-project/${id}`,
+      {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const res = await response.json();
+    if (response.ok) {
+      return res.data;
+    } else {
+      throw new Error(res.error);
+    }
+  };
   return (
     <AuthContext.Provider
       value={{
@@ -353,6 +373,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         analyze,
         githubLogin,
         saveResult,
+        getData,
       }}>
       {children}
     </AuthContext.Provider>

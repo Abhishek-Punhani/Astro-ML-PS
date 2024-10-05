@@ -6,14 +6,20 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ SidebarStatus }: SidebarProps) => {
-  const { user } = useAuth();
-  let array = user?.project_names?.map((project) => project.project_name) || [];
+  const { user, getData } = useAuth();
+  let array = user?.project_names || [];
 
   const [BarOpen, setBarOpen] = useState(false);
 
   useEffect(() => {
     setBarOpen(SidebarStatus);
   }, [SidebarStatus]);
+
+  const handleChange = async (id: string) => {
+    setBarOpen(!BarOpen);
+    const res = await getData(user?.token as string, id);
+    console.log(res);
+  };
 
   return (
     <div
@@ -31,8 +37,9 @@ const Sidebar = ({ SidebarStatus }: SidebarProps) => {
               return (
                 <div
                   key={index}
-                  className="w-full border py-2 px-2 rounded-lg cursor-pointer hover:bg-slate-600">
-                  Project: {item}
+                  className="w-full border py-2 px-2 rounded-lg cursor-pointer hover:bg-slate-600"
+                  onClick={() => handleChange(item?.id)}>
+                  Project: {item?.project_name}
                 </div>
               );
             })

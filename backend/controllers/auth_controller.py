@@ -405,7 +405,7 @@ def verifyOtp():
                 "username": user.username,
                 "email": user.email,
                 "token": access_token_str,
-                "project_names": project_names,  # Updated structure here
+                "project_names": project_names,
             },
         }
         
