@@ -1,11 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-// import Cookies from 'js-cookie';
+
+export interface Project {
+  id: string;
+  project_name: string;
+}
 
 export interface User {
   id: string;
   email: string;
   username: string;
   token: string;
+  project_names: Project[];
 }
 
 interface AuthContextType {
@@ -100,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem("token", data.user.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setUser(data.user);
+      console.log(data.user);
     } else {
       throw new Error(data.error);
     }
@@ -315,7 +321,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     });
     const res = await response.json();
     if (response.ok) {
-      console.log(res);
+      const user_projects = user?.project_names || [];
+      const project_names = [...user_projects, res.project_name];
+      if (user) {
+        setUser({ ...user, project_names });
+      }
       return res;
     } else {
       throw new Error(res.error);

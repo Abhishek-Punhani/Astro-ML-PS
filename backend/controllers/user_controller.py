@@ -446,30 +446,46 @@ def save():
 
         # Decode the token
         try:
-            jwt.decode(token, os.getenv("AUTH_SECRET"), algorithms="HS256")
+            check = jwt.decode(token, os.getenv("AUTH_SECRET"), algorithms="HS256")
             g.token = token
         except Exception:
-            return jsonify({"error": "Token expired or invalid"}), 400
+            return jsonify({"error": "Token expired or invalid."}), 400
+            
         data = request.get_json()["data"]
         required_keys = [
-        "x", "y", "time_of_occurances", "time_corresponding_peak_flux",
-        "max_peak_flux", "average_peak_flux", "rise_time", "left",
-        "decay_time", "right", "prominences", "cluster_labels", "silhouette_avg"
-    ]
+            "x", "y", "time_of_occurances", "time_corresponding_peak_flux",
+            "max_peak_flux", "average_peak_flux", "rise_time", "left",
+            "decay_time", "right", "prominences", "cluster_labels", "silhouette_avg", "projectName"
+        ]
 
         # Check for missing keys in the data
         missing_keys = [key for key in required_keys if key not in data]
         if missing_keys:
             print(f"Missing keys: {missing_keys}")
             return jsonify({"error": "Missing keys in data", "missing_keys": missing_keys}), 400
-        
+
+        check = jwt.decode(g.token, os.getenv("AUTH_SECRET"), algorithms="HS256")
+        user_id = check["userId"]
         db = get_db()
-        data_hash=generate_data_hash(data)
-        existing_result=db.query(PeakResult).filter(PeakResult.data_hash==data_hash).first()
-        if(existing_result):
-            return jsonify({"message":"Data already exists","data":existing_result.project_name}),200
+
+        # Fetch the user from the database using the user ID
+        user = db.query(users).filter(users.id == str(user_id)).first()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
         
-        new_result=PeakResult(
+        # Generate data hash
+        data_hash = generate_data_hash(data)
+
+        # Check if an existing result with the same data_hash exists
+        existing_result = db.query(PeakResult).filter(PeakResult.data_hash == data_hash).first()
+        
+        # If an existing result is found, check if it's already in the user's peak_result_ids
+        if existing_result:
+            if existing_result.id in user.peak_result_ids:
+                return jsonify({"message": "Data already exists", "data": existing_result.project_name}), 200
+
+        # Create a new PeakResult object
+        new_result = PeakResult(
             max_peak_flux=data["max_peak_flux"],
             average_peak_flux=data["average_peak_flux"],
             rise_time=data["rise_time"],
@@ -482,11 +498,18 @@ def save():
             data_hash=data_hash,
             project_name=data["projectName"]
         )
+
+        # Add the new result to the database
         db.add(new_result)
         db.commit()
-        return jsonify({"message":"Data saved successfully"}),200
-        
+        if new_result.id not in user.peak_result_ids:
+            user.peak_result_ids.append(new_result.id)
+            db.commit()  
+
+        project_name={"id":new_result.id,"project_name":new_result.project_name}
+
+        return jsonify({"message": "Data saved successfully" ,"project_name":project_name}), 200
         
     except Exception as e:
         print(f"Exception: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": "Internal server error."}), 500

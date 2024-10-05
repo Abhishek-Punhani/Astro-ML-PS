@@ -9,6 +9,7 @@ import jwt
 from db import get_db
 from models.user import User as users
 from models.otp import OTP
+from models.peakResult import PeakResult
 from emails.verification import send_verification_email
 from emails.forgotpass import send_reset_password_email
 from utils.validation import create_user
@@ -338,16 +339,12 @@ def verifyOtp():
             return jsonify({"error": "Invalid OTP."}), 400
 
         # Check if the OTP is expired
-        current_time = datetime.now(
-            timezone.utc
-        )  # Get the current time in UTC with timezone
-
-        # Ensure otp_creation_time is timezone-aware
+        current_time = datetime.now(timezone.utc)
         otp_creation_time = otp_entry.created_at
-        if otp_creation_time.tzinfo is None:  # If it's naive, make it aware
+
+        if otp_creation_time.tzinfo is None:
             otp_creation_time = otp_creation_time.replace(tzinfo=timezone.utc)
 
-        # Check if the current time is more than 330 seconds
         time_difference = current_time - otp_creation_time
         if time_difference.total_seconds() > 330:
             db.delete(otp_entry)
@@ -357,7 +354,7 @@ def verifyOtp():
         try:
             jwt.decode(token_received, os.getenv("AUTH_SECRET"), algorithms=["HS256"])
         except Exception:
-            return jsonify({"error": "Otp expired."}), 400
+            return jsonify({"error": "Token expired."}), 400
 
         # Extract email from the OTP entry
         email = otp_entry.email
@@ -370,6 +367,17 @@ def verifyOtp():
         user = db.query(users).filter(users.email == email).first()
         if not user:
             return jsonify({"error": "User not found."}), 404
+        
+        print(user.peak_result_ids)
+
+        # Retrieve PeakResult objects for the user's peak_result_ids
+        peak_results = db.query(PeakResult).filter(PeakResult.id.in_(user.peak_result_ids)).all()
+        
+        # Generate project names as an array of objects with id and project_name
+        project_names = [
+            {"id": str(result.id), "project_name": result.project_name}
+            for result in peak_results
+        ]
 
         # Generate JWT tokens
         access_token = jwt.encode(
@@ -383,16 +391,12 @@ def verifyOtp():
 
         # Decode tokens to strings
         access_token_str = (
-            access_token
-            if isinstance(access_token, str)
-            else access_token.decode("utf-8")
+            access_token if isinstance(access_token, str) else access_token.decode("utf-8")
         )
         refresh_token_str = (
-            refresh_token
-            if isinstance(refresh_token, str)
-            else refresh_token.decode("utf-8")
+            refresh_token if isinstance(refresh_token, str) else refresh_token.decode("utf-8")
         )
-
+        
         # Response Structure
         response_data = {
             "message": "Login success.",
@@ -401,8 +405,10 @@ def verifyOtp():
                 "username": user.username,
                 "email": user.email,
                 "token": access_token_str,
+                "project_names": project_names,  # Updated structure here
             },
         }
+        
         response = make_response(jsonify(response_data))
         response.set_cookie(
             "xfd",
@@ -413,6 +419,7 @@ def verifyOtp():
             samesite="None",
             secure=True,
         )
+        
         return response
 
     except Exception as e:

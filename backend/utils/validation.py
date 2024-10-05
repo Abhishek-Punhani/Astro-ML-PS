@@ -1,9 +1,9 @@
-import bcrypt
 import re
+import bcrypt
 from email_validator import validate_email, EmailNotValidError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from models.user import User
+from models.user import User as users
 from db import get_db
 
 
@@ -32,7 +32,7 @@ async def create_user(userData):
             return {"error": "Please provide a valid email address."}
 
         # Check if user already exists
-        existing_user = db.query(User).filter_by(email=email).first()
+        existing_user = db.query(users).filter_by(email=email).first()
         if existing_user:
             return {
                 "error": "This email already exists. Please try with a different email."
@@ -61,7 +61,7 @@ async def create_user(userData):
         ).decode("utf-8")
 
         # Add new user to the database
-        new_user = User(username=username, email=email, password=hashed_password)
+        new_user = users(username=username, email=email, password=hashed_password)
 
         db.add(new_user)
         db.commit()

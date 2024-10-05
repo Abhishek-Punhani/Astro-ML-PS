@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { useAuth } from "../AuthContext";
 import "../utils/graph.css";
 import * as XLSX from "xlsx";
@@ -88,11 +87,11 @@ const HomePage = () => {
       }
     });
   };
-  const { register, handleSubmit, reset } = useForm();
   const fileInput = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState(
     fileInput.current?.files?.[0]?.name ?? "Select File"
   );
+  const [projectName, setProjectName] = useState<string>("");
   const [isGraphReady, setisGraphReady] = useState(false);
   const [GraphData1, setGraphData1] = useState<Chart | null>(null);
   const [GraphData2, setGraphData2] = useState<Chart | null>(null);
@@ -103,8 +102,17 @@ const HomePage = () => {
   const tabContainerRef = useRef<HTMLDivElement | null>(null);
   const resetZoomRef = useRef<HTMLButtonElement | null>(null);
   const loaderAnimationResetRef = useRef<HTMLDivElement | null>(null);
-  const onsubmit = async (data: any) => {
-    const projectName = data.projectName;
+
+  const onsubmit = async (e: any) => {
+    e.preventDefault();
+    if (projectName.trim() === "") {
+      return setError("Project Name is required");
+    }
+    if (fileInput.current?.files?.[0]) {
+      setError("Please select a file");
+    }
+
+    setError(null);
     try {
       let res = await handleFileChange(fileInput.current?.files?.[0] ?? null);
       let responseData: any = await analyze(res, user?.token as string);
@@ -212,7 +220,7 @@ const HomePage = () => {
     if (GraphData3) {
       GraphData3.destroy();
     }
-    reset();
+
     if (fileInput.current && fileInput.current.files) {
       fileInput.current.value = ""; // Clear the file input
     }
@@ -229,13 +237,14 @@ const HomePage = () => {
       {!isGraphReady && (
         <form
           className="flex flex-col gap-12  justify-center items-center font-unic text-white fadein"
-          onSubmit={handleSubmit(onsubmit)}>
+          onSubmit={(e) => onsubmit(e)}>
           <h1 className="text-4xl font-bold">ANALYSE THE COSMOS</h1>
           <input
             type="text"
             placeholder="Project Name"
             className="border text-lg px-2 py-2 sm:w-[500px] w-[300px] rounded-lg outline-none bg-transparent text-center"
-            {...register("projectName", { required: true })}
+            value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
           />
           <div
             className="block border p-2 rounded-lg text-lg cursor-pointer sm:w-[500px] w-[300px] text-center hover:bg-slate-500"
