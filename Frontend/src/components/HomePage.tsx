@@ -11,10 +11,8 @@ Chart.register(zoomPlugin);
 declare const astro: any;
 const HomePage = () => {
   const [error, setError] = useState<string | null>(null);
-  const { analyze, user } = useAuth() as unknown as {
-    analyze: (data: any, token: string) => Promise<{ res: any }>;
-    user: { token: string };
-  };
+  const { analyze, user, saveResult } = useAuth();
+  const [Data, setData] = useState<any>(null);
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "/fits.js";
@@ -109,8 +107,8 @@ const HomePage = () => {
     const projectName = data.projectName;
     try {
       let res = await handleFileChange(fileInput.current?.files?.[0] ?? null);
-      let responseData = await analyze(res, user?.token as string);
-      console.log(responseData, projectName);
+      let responseData: any = await analyze(res, user?.token as string);
+      setData({ ...responseData.res, projectName, fileName });
       let X = responseData.res["x"];
       let Y = responseData.res["y"];
       let MF = responseData.res["time_of_occurances"];
@@ -220,6 +218,12 @@ const HomePage = () => {
     }
     setFileName("Select File");
   };
+  const SaveProject = () => {
+    console.log(Data);
+    if (Data) {
+      saveResult(Data, user?.token as string);
+    }
+  };
   return (
     <div className="flex flex-col items-center justify-center h-screen w-screen">
       {!isGraphReady && (
@@ -251,7 +255,6 @@ const HomePage = () => {
           />
 
           <div className="btn-container">
-            {error && <p className="text-sm text-red-500">{error}</p>}
             {error && <p className="text-sm text-red-500">{error}</p>}
             <button className="btn" type="submit">
               Analyse
@@ -289,6 +292,17 @@ const HomePage = () => {
                 className="tab-button p-2 rounded-lg border text-white"
                 data-tab="chart-3">
                 Decay Time
+              </button>
+            </div>
+            <div>
+              <button
+                className=" p-2 rounded-lg border text-white"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  SaveProject();
+                }}>
+                Save Project
               </button>
             </div>
           </div>

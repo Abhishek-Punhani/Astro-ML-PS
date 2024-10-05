@@ -1,15 +1,44 @@
+import hashlib
+import json
 import os
 from datetime import datetime, timezone, timedelta
 import random
 import numpy as np
 from flask import jsonify, request, g
 from db import get_db
+from models.peakResult import PeakResult
 from models.user import User as users
 from models.otp import OTP
 import bcrypt
 import jwt
 from emails.verification import send_verification_email
 from model import returnable
+
+
+
+def convert_numpy_to_native(data):
+    """Recursively convert numpy types to native Python types."""
+    if isinstance(data, dict):
+        return {key: convert_numpy_to_native(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [convert_numpy_to_native(item) for item in data]
+    elif isinstance(data, np.integer):  # Convert numpy int types
+        return int(data)
+    elif isinstance(data, np.floating):  # Convert numpy float types
+        return float(data)
+    elif isinstance(data, np.ndarray):  # Convert numpy arrays to lists
+        return data.tolist()
+    else:
+        return data
+
+
+def generate_data_hash(data_dict):
+    # Convert all numpy types to Python native types
+    native_data = convert_numpy_to_native(data_dict)
+    # Convert dict to JSON string
+    data_str = json.dumps(native_data, sort_keys=True)
+    # Generate and return hash
+    return hashlib.sha256(data_str.encode('utf-8')).hexdigest()
 
 
 def convert_to_serializable(obj):
@@ -400,6 +429,64 @@ def analyze():
         else:
             return jsonify({"error": "Invalid input data format"}), 400
 
+    except Exception as e:
+        print(f"Exception: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+
+def save():
+    try:
+        # Get the Authorization header and check for token
+        auth_header = request.headers.get("authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Authorization token missing or invalid"}), 401
+
+        token = auth_header.split(" ")[1]
+
+        # Decode the token
+        try:
+            jwt.decode(token, os.getenv("AUTH_SECRET"), algorithms="HS256")
+            g.token = token
+        except Exception:
+            return jsonify({"error": "Token expired or invalid"}), 400
+        data = request.get_json()["data"]
+        required_keys = [
+        "x", "y", "time_of_occurances", "time_corresponding_peak_flux",
+        "max_peak_flux", "average_peak_flux", "rise_time", "left",
+        "decay_time", "right", "prominences", "cluster_labels", "silhouette_avg"
+    ]
+
+        # Check for missing keys in the data
+        missing_keys = [key for key in required_keys if key not in data]
+        if missing_keys:
+            print(f"Missing keys: {missing_keys}")
+            return jsonify({"error": "Missing keys in data", "missing_keys": missing_keys}), 400
+        
+        db = get_db()
+        data_hash=generate_data_hash(data)
+        existing_result=db.query(PeakResult).filter(PeakResult.data_hash==data_hash).first()
+        if(existing_result):
+            return jsonify({"message":"Data already exists","data":existing_result.project_name}),200
+        
+        new_result=PeakResult(
+            max_peak_flux=data["max_peak_flux"],
+            average_peak_flux=data["average_peak_flux"],
+            rise_time=data["rise_time"],
+            decay_time=data["decay_time"],
+            x=data["x"],
+            y=data["y"],
+            time_of_occurances=data["time_of_occurances"],
+            time_corresponding_peak_flux=data["time_corresponding_peak_flux"],
+            silhouette_score=data["silhouette_avg"],
+            data_hash=data_hash,
+            project_name=data["projectName"]
+        )
+        db.add(new_result)
+        db.commit()
+        return jsonify({"message":"Data saved successfully"}),200
+        
+        
     except Exception as e:
         print(f"Exception: {e}")
         return jsonify({"error": "Internal server error"}), 500
