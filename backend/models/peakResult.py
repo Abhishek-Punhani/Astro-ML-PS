@@ -1,11 +1,10 @@
 import uuid
-from sqlalchemy import Column, Integer, Float, JSON
+from sqlalchemy import Column, Float, JSON, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import UUID
 
 # Create a Base class
 Base = declarative_base()
-
 
 class PeakResult(Base):
     __tablename__ = "peak_results"
@@ -17,7 +16,6 @@ class PeakResult(Base):
         unique=True,
         nullable=False,
     )
-    user_id = Column(Integer, nullable=False)
     max_peak_flux = Column(Float, nullable=False)
     average_peak_flux = Column(Float, nullable=False)
     rise_time = Column(JSON, nullable=False)
@@ -27,11 +25,25 @@ class PeakResult(Base):
     time_of_occurances = Column(JSON, nullable=False)
     time_corresponding_peak_flux = Column(JSON, nullable=False)
     silhouette_score = Column(Float)
+    data_hash = Column(String(64), nullable=False)
+    project_name = Column(String, nullable=False)
 
-    @property
-    def id_utf8(self):
-        # Convert UUID to string and then encode as UTF-8 bytes
-        return str(self.id).encode("utf-8")
+    def to_dict(self):
+        """Convert the PeakResult object to a dictionary."""
+        return {
+            "id": str(self.id),  # Convert UUID to string
+            "max_peak_flux": self.max_peak_flux,
+            "average_peak_flux": self.average_peak_flux,
+            "rise_time": self.rise_time,
+            "decay_time": self.decay_time,
+            "x": self.x,
+            "y": self.y,
+            "time_of_occurances": self.time_of_occurances,
+            "time_corresponding_peak_flux": self.time_corresponding_peak_flux,
+            "silhouette_score": self.silhouette_score,
+            "data_hash": self.data_hash,
+            "project_name": self.project_name,
+        }
 
     def __repr__(self):
-        return f"<PeakResult for User {self.user_id}>"
+        return f"<PeakResult id={self.id}, max_peak_flux={self.max_peak_flux}>"

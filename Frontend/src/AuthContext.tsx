@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-// import Cookies from 'js-cookie';
 import { useToast } from "./components/toast-context";
+export interface Project {
+  id: string;
+  project_name: string;
+}
 
 export interface User {
   id: string;
   email: string;
   username: string;
   token: string;
+  project_names: Project[];
 }
 
 interface AuthContextType {
@@ -39,6 +43,8 @@ interface AuthContextType {
   resendOtp: (rtoken: string) => Promise<void>;
   analyze: (data: any, token: string) => Promise<void>;
   githubLogin: (code: string) => Promise<void>;
+  saveResult: (data: any, token: string) => Promise<void>;
+  getData: (token: string, id: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -359,6 +365,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const saveResult = async (data: any, token: string) => {
+    const response = await fetch("http://localhost:8080/user/save", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ data }),
+    });
+    const res = await response.json();
+    if (response.ok) {
+      const user_projects = user?.project_names || [];
+      const project_names = [...user_projects, res.project_name];
+      if (user) {
+        setUser({ ...user, project_names });
+      }
+      return res;
+    } else {
+      throw new Error(res.error);
+    }
+  };
+
+  const getData = async (token: string, id: string) => {
+    const response = await fetch(
+      `http://localhost:8080/user/get-project/${id}`,
+      {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const res = await response.json();
+    if (response.ok) {
+      return res.data;
+    } else {
+      throw new Error(res.error);
+    }
+  };
   return (
     <AuthContext.Provider
       value={{
@@ -379,6 +427,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         resendOtp,
         analyze,
         githubLogin,
+        saveResult,
+        getData,
       }}>
       {children}
     </AuthContext.Provider>

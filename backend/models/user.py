@@ -1,11 +1,11 @@
 import uuid
-from sqlalchemy import Column, String, Boolean, ARRAY
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Boolean
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.mutable import MutableList
 
 # Create a Base class
 Base = declarative_base()
-
 
 class User(Base):
     __tablename__ = "users"
@@ -21,10 +21,10 @@ class User(Base):
     password = Column(String, nullable=False)
     username = Column(String, nullable=False)
     isVerified = Column("isVerified", Boolean, default=False, nullable=False)
+    
+    # Use MutableList to track changes in the ARRAY field
+    peak_result_ids = Column(MutableList.as_mutable(ARRAY(UUID(as_uuid=True))), default=list, nullable=False)
 
-    peak_result_ids = Column(ARRAY(UUID(as_uuid=True)), default=list, nullable=False)
-
-    # Convert the UUID to UTF-8 encoded string before saving or using
     @property
     def id_utf8(self):
         # Convert UUID to string and then encode as UTF-8 bytes
