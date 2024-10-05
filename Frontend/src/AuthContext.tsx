@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 // import Cookies from 'js-cookie';
+import { useToast } from "./components/toast-context";
 
 export interface User {
   id: string;
@@ -64,6 +65,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(JSON.parse(localStorage.getItem("user") || "null"));
     }
   }, []);
+  const { open } = useToast();
+  const SuccessfulToast = (messsage: string) => {
+    console.log(messsage);
+    open({
+      message: {
+        heading: "Success",
+        content: messsage,
+      },
+      duration: 3000,
+      position: "top-center",
+      color: "success",
+    });
+  };
+  const FailedToast = (messsage: string) => {
+    console.log(messsage);
+    open({
+      message: {
+        heading: "Failed",
+        content: messsage,
+      },
+      duration: 3000,
+      position: "top-center",
+      color: "error",
+    });
+  };
+  const InfoToast = (messsage: string) => {
+    console.log(messsage);
+    open({
+      message: {
+        heading: "Info",
+        content: messsage,
+      },
+      duration: 3000,
+      position: "top-center",
+      color: "info",
+    });
+  };
 
   const login = async (email: string, password: string) => {
     const response = await fetch("http://localhost:8080/auth/login", {
@@ -76,8 +114,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -98,8 +138,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       SetReftoken(null);
       localStorage.setItem("token", data.user.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      SuccessfulToast("Login Successfull");
       setUser(data.user);
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -119,8 +161,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -140,8 +184,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -156,8 +202,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const data = await response.json();
     if (response.ok) {
       setAccess("link");
+      InfoToast("Link sent check Your Mail");
       return;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -165,6 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    SuccessfulToast("Logout Successfull");
     setUser(null);
   };
 
@@ -204,8 +253,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -225,8 +276,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     );
     const data = await response.json();
     if (response.ok && vtoken) {
+      SuccessfulToast("Password Changed Successfully");
       SetVtoken(null);
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -264,8 +317,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (response.ok && vtoken && reftoken) {
         SetVtoken(data.token);
         SetReftoken(data.rtoken);
+        InfoToast("Otp sent check Your Mail");
         return data.token;
       } else {
+        FailedToast("Something Went Wrong !");
         throw new Error("Something Went Wrong !");
       }
     }
@@ -296,8 +351,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };

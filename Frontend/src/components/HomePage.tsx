@@ -3,14 +3,12 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "../AuthContext";
 import "../utils/graph.css";
 import * as XLSX from "xlsx";
-import { plotGraph1, plotGraph2, plotGraph3 } from "../utils/graph";
-import { Chart } from "chart.js";
-import zoomPlugin from "chartjs-plugin-zoom";
-import { FaBackward } from "react-icons/fa";
-Chart.register(zoomPlugin);
+// import { plotGraph1, plotGraph2, plotGraph3 } from "../utils/graph";
+// import { Chart } from "chart.js";
+// import zoomPlugin from "chartjs-plugin-zoom";
+import Graph from "./Graph";
 declare const astro: any;
 const HomePage = () => {
-  const [error, setError] = useState<string | null>(null);
   const { analyze, user } = useAuth() as unknown as {
     analyze: (data: any, token: string) => Promise<{ res: any }>;
     user: { token: string };
@@ -87,24 +85,33 @@ const HomePage = () => {
           console.log(dataArray);
         };
         reader.readAsText(file as Blob);
+      } else {
+        setError("root", { type: "manual", message: "Invalid File Type!" });
       }
     });
   };
-  const { register, handleSubmit, reset } = useForm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm();
   const fileInput = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState(
     fileInput.current?.files?.[0]?.name ?? "Select File"
   );
   const [isGraphReady, setisGraphReady] = useState(false);
-  const [GraphData1, setGraphData1] = useState<Chart | null>(null);
-  const [GraphData2, setGraphData2] = useState<Chart | null>(null);
-  const [GraphData3, setGraphData3] = useState<Chart | null>(null);
-  const ctxRef = useRef<HTMLCanvasElement | null>(null);
-  const ctxRef1 = useRef<HTMLCanvasElement | null>(null);
-  const ctxRef2 = useRef<HTMLCanvasElement | null>(null);
-  const tabContainerRef = useRef<HTMLDivElement | null>(null);
-  const resetZoomRef = useRef<HTMLButtonElement | null>(null);
-  const loaderAnimationResetRef = useRef<HTMLDivElement | null>(null);
+  // const [GraphData1, setGraphData1] = useState<Chart | null>(null);
+  // const [GraphData2, setGraphData2] = useState<Chart | null>(null);
+  // const [GraphData3, setGraphData3] = useState<Chart | null>(null);
+  // const ctxRef = useRef<HTMLCanvasElement | null>(null);
+  // const ctxRef1 = useRef<HTMLCanvasElement | null>(null);
+  // const ctxRef2 = useRef<HTMLCanvasElement | null>(null);
+  // const tabContainerRef = useRef<HTMLDivElement | null>(null);
+  // const resetZoomRef = useRef<HTMLButtonElement | null>(null);
+  // const loaderAnimationResetRef = useRef<HTMLDivElement | null>(null);
+  const [plotData, setPlotData] = useState<any[] | null>(null);
   const onsubmit = async (data: any) => {
     const projectName = data.projectName;
     try {
@@ -141,83 +148,78 @@ const HomePage = () => {
         }
       });
 
-      let plotData = [X, Y, MF, TOC, leftx, lefty, rightx, righty];
+      setPlotData([X, Y, MF, TOC, leftx, lefty, rightx, righty] as any[]);
       setisGraphReady(true);
-      const ctx = ctxRef.current?.getContext("2d");
-      const ctx1 = ctxRef1.current?.getContext("2d");
-      const ctx2 = ctxRef2.current?.getContext("2d");
-      if (ctx) {
-        // Ensure the canvas context is available
-        const resetZoom = resetZoomRef.current;
-        const loaderAnimationReset = loaderAnimationResetRef.current;
 
-        let chart1 = plotGraph1(
-          plotData,
-          ctx,
-          resetZoom as HTMLElement,
-          loaderAnimationReset as HTMLElement
-        );
-        let chart2 = plotGraph2(
-          plotData,
-          ctx1 as CanvasRenderingContext2D,
-          resetZoom as HTMLElement,
-          loaderAnimationReset as HTMLElement
-        );
-        let chart3 = plotGraph3(
-          plotData,
-          ctx2 as CanvasRenderingContext2D,
-          resetZoom as HTMLElement,
-          loaderAnimationReset as HTMLElement
-        );
-        setGraphData1(chart1);
-        setGraphData2(chart2);
-        setGraphData3(chart3);
-      } else {
-        console.error("Canvas context is not available");
-      }
-      document.querySelectorAll(".tab-button").forEach((button) => {
-        button.addEventListener("click", () => {
-          const activeTab = (button as HTMLButtonElement).dataset.tab;
+      // const ctx = ctxRef.current?.getContext("2d");
+      // const ctx1 = ctxRef1.current?.getContext("2d");
+      // const ctx2 = ctxRef2.current?.getContext("2d");
+      // if (ctx && plotData) {
+      //   // Ensure the canvas context and plotData are available
+      //   const resetZoom = resetZoomRef.current;
+      //   const loaderAnimationReset = loaderAnimationResetRef.current;
 
-          document.querySelectorAll(".tab-button").forEach((btn) => {
-            btn.classList.remove("active");
-          });
-          button.classList.add("active");
+      //   let chart1 = plotGraph1(
+      //     plotData,
+      //     ctx,
+      //     resetZoom as HTMLElement,
+      //     loaderAnimationReset as HTMLElement
+      //   );
+      //   let chart2 = plotGraph2(
+      //     plotData,
+      //     ctx1 as CanvasRenderingContext2D,
+      //     resetZoom as HTMLElement,
+      //     loaderAnimationReset as HTMLElement
+      //   );
+      //   let chart3 = plotGraph3(
+      //     plotData,
+      //     ctx2 as CanvasRenderingContext2D,
+      //     resetZoom as HTMLElement,
+      //     loaderAnimationReset as HTMLElement
+      //   );
+      //   setGraphData1(chart1);
+      //   setGraphData2(chart2);
+      //   setGraphData3(chart3);
+      // } else {
+      //   console.error("Canvas context or plotData is not available");
+      // }
+      // document.querySelectorAll(".tab-button").forEach((button) => {
+      //   button.addEventListener("click", () => {
+      //     const activeTab = (button as HTMLButtonElement).dataset.tab;
 
-          const chart1 = document.getElementById("chart-1");
-          if (chart1) {
-            chart1.style.display = activeTab === "chart-1" ? "block" : "none";
-          }
-          const chart2 = document.getElementById("chart-2");
-          if (chart2) {
-            chart2.style.display = activeTab === "chart-2" ? "block" : "none";
-          }
-          const chart3 = document.getElementById("chart-3");
-          if (chart3) {
-            chart3.style.display = activeTab === "chart-3" ? "block" : "none";
-          }
-        });
-      });
+      //     document.querySelectorAll(".tab-button").forEach((btn) => {
+      //       btn.classList.remove("active");
+      //     });
+      //     button.classList.add("active");
+
+      //     const chart1 = document.getElementById("chart-1");
+      //     if (chart1) {
+      //       chart1.style.display = activeTab === "chart-1" ? "block" : "none";
+      //     }
+      //     const chart2 = document.getElementById("chart-2");
+      //     if (chart2) {
+      //       chart2.style.display = activeTab === "chart-2" ? "block" : "none";
+      //     }
+      //     const chart3 = document.getElementById("chart-3");
+      //     if (chart3) {
+      //       chart3.style.display = activeTab === "chart-3" ? "block" : "none";
+      //     }
+      //   });
+      // });
     } catch (error) {
-      setError("Something Went Wrong!");
+      setError("root", {
+        type: "manual",
+        message: "Something Went Wrong!",
+      });
       console.log(error);
     }
   };
   const RemoveGraph = () => {
     setisGraphReady(false);
-    if (GraphData1) {
-      GraphData1.destroy();
-    }
-    if (GraphData2) {
-      GraphData2.destroy();
-    }
-    if (GraphData3) {
-      GraphData3.destroy();
-    }
-    reset();
     if (fileInput.current && fileInput.current.files) {
       fileInput.current.value = ""; // Clear the file input
     }
+    reset();
     setFileName("Select File");
   };
   return (
@@ -227,12 +229,23 @@ const HomePage = () => {
           className="flex flex-col gap-12  justify-center items-center font-unic text-white fadein"
           onSubmit={handleSubmit(onsubmit)}>
           <h1 className="text-4xl font-bold">ANALYSE THE COSMOS</h1>
+          {errors.root && (
+            <p className="text-sm text-red-500">{errors.root.message}</p>
+          )}
+          {errors.projectName?.message && (
+            <p className="text-sm text-red-500">
+              {errors.projectName.message as string}
+            </p>
+          )}
           <input
             type="text"
             placeholder="Project Name"
             className="border text-lg px-2 py-2 sm:w-[500px] w-[300px] rounded-lg outline-none bg-transparent text-center"
-            {...register("projectName", { required: true })}
+            {...register("projectName", {
+              required: "Project Name is Required",
+            })}
           />
+
           <div
             className="block border p-2 rounded-lg text-lg cursor-pointer sm:w-[500px] w-[300px] text-center hover:bg-slate-500"
             onClick={() => {
@@ -251,73 +264,17 @@ const HomePage = () => {
           />
 
           <div className="btn-container">
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            {error && <p className="text-sm text-red-500">{error}</p>}
             <button className="btn" type="submit">
               Analyse
             </button>
           </div>
         </form>
       )}
-      {
-        <div className={`${!isGraphReady && "hidden"}`}>
-          <div className="w-full flex justify-between items-center">
-            <button
-              className="p-2 rounded-full h-10 border text-white "
-              onClick={RemoveGraph}>
-              <div className="flex justify-center items-center w-full gap-x-4">
-                <span className="flex items-center gap-2">
-                  <FaBackward />
-                </span>
-                <span>Back</span>
-              </div>
-            </button>
-            <div
-              className="tab-container gap-4 flex items-center justify-evenly "
-              ref={tabContainerRef}>
-              <button
-                className="tab-button active p-2 rounded-lg border text-white"
-                data-tab="chart-1">
-                Peak Flux
-              </button>
-              <button
-                className="tab-button p-2 rounded-lg border text-white"
-                data-tab="chart-2">
-                Rising Time
-              </button>
-              <button
-                className="tab-button p-2 rounded-lg border text-white"
-                data-tab="chart-3">
-                Decay Time
-              </button>
-            </div>
-          </div>
-
-          <div className="graph-container">
-            <canvas id="chart-1" ref={ctxRef} className="w-[70vw]"></canvas>
-            <canvas
-              id="chart-2"
-              ref={ctxRef1}
-              style={{ display: "none" }}></canvas>
-            <canvas
-              id="chart-3"
-              ref={ctxRef2}
-              style={{ display: "none" }}></canvas>
-            <div className="button-container">
-              <button
-                className="reset-button p-2 rounded-lg border text-white"
-                id="reset-zoom"
-                ref={resetZoomRef}>
-                Reset Zoom
-              </button>
-              <div
-                className="loader hidden"
-                id="loader-animation-reset"
-                ref={loaderAnimationResetRef}></div>
-            </div>
-          </div>
+      {isGraphReady && plotData && (
+        <div>
+          <Graph plotData={plotData} remove={RemoveGraph} />
         </div>
-      }
+      )}
     </div>
   );
 };

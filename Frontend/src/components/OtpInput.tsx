@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
-
 const OTPForm: React.FC = () => {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
@@ -113,7 +112,7 @@ const OTPForm: React.FC = () => {
                 <header className="mb-10">
                   <h1 className="text-3xl font-bold mb-5">OTP Verification</h1>
                   <p className="text-[16px] text-slate-500">
-                    Enter the 4-digit verification code that was sent to your
+                    Enter the 6-digit verification code that was sent to your
                     email.
                   </p>
                 </header>

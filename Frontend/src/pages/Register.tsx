@@ -23,7 +23,7 @@ export const RegisterForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: yupResolver(RegisterSchema),
   });
@@ -110,7 +110,8 @@ export const RegisterForm = () => {
 
             <button
               type="submit"
-              className="w-full hover:bg-[rgb(0,0,0,0.4)] bg-transparent border text-white p-2 rounded">
+              className="w-full hover:bg-[rgb(0,0,0,0.4)] bg-transparent border text-white p-2 rounded"
+              disabled={isSubmitting}>
               {loading ? "Loading..." : "Register"}
             </button>
           </form>

@@ -20,7 +20,8 @@ import MailSuccess from "./pages/mailsent";
 import ResetPassword from "./pages/ResetPassword";
 import ChangePassword from "./pages/ChangePassword";
 import { GitHubCallback } from "./pages/githubCallback";
-
+import { ToastProvider } from "./components/Toast";
+import ErrorPage from "./pages/ErrorPage";
 const AppContent: React.FC = () => {
   const { user, vtoken, access } = useAuth();
   const token = user?.token;
@@ -28,50 +29,56 @@ const AppContent: React.FC = () => {
 
   return (
     <div
-      className="h-screen fixed w-screen bg-no-repeat bg-cover bg-center"
+      className="h-screen fixed w-screen bg-no-repeat bg-cover bg-center overflow-scroll"
       style={{ backgroundImage: "url('/images/homeBg1.jpg')" }}>
       <Router>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route
-            path="/auth/github/callback"
-            element={token ? <Navigate to="/" /> : <GitHubCallback />}
-          />
-          <Route path="/analyser" element={token ? <Home /> : <LoginForm />} />
-          <Route
-            path="/login"
-            element={token ? <Navigate to="/" /> : <LoginForm />}
-          />
-          <Route
-            path="/register"
-            element={token ? <Navigate to="/" /> : <RegisterForm />}
-          />
-          <Route
-            path="/settings"
-            element={token ? <Settings /> : <LoginForm />}
-          />
-          <Route
-            path="/auth/verify/:vtoken"
-            element={vtoken ? <OtpInput /> : <Navigate to={"/"} />}
-          />
-          <Route
-            path="/auth/newcredentials/:id/:token"
-            element={<ResetPassword />}
-          />
-          <Route
-            path="/auth/forgot-password"
-            element={<ForgotPasswordEmail />}
-          />
-          <Route
-            path="/auth/mail-sent"
-            element={access ? <MailSuccess /> : <Navigate to="/" />}
-          />
-          <Route
-            path="/settings/change-password"
-            element={token ? <ChangePassword /> : <Navigate to={"/"} />}
-          />
-        </Routes>
+        <>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route
+              path="/auth/github/callback"
+              element={token ? <Navigate to="/" /> : <GitHubCallback />}
+            />
+            <Route
+              path="/analyser"
+              element={token ? <Home /> : <LoginForm />}
+            />
+            <Route
+              path="/login"
+              element={token ? <Navigate to="/" /> : <LoginForm />}
+            />
+            <Route
+              path="/register"
+              element={token ? <Navigate to="/" /> : <RegisterForm />}
+            />
+            <Route
+              path="/settings"
+              element={token ? <Settings /> : <LoginForm />}
+            />
+            <Route
+              path="/auth/verify/:vtoken"
+              element={vtoken ? <OtpInput /> : <Navigate to={"/"} />}
+            />
+            <Route
+              path="/auth/newcredentials/:id/:token"
+              element={<ResetPassword />}
+            />
+            <Route
+              path="/auth/forgot-password"
+              element={<ForgotPasswordEmail />}
+            />
+            <Route
+              path="/auth/mail-sent"
+              element={access ? <MailSuccess /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/settings/change-password"
+              element={token ? <ChangePassword /> : <Navigate to={"/"} />}
+            />
+            <Route path="*" element={<ErrorPage />} />
+          </Routes>
+        </>
       </Router>
     </div>
   );
@@ -79,9 +86,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ToastProvider>
   );
 };
 
