@@ -51,6 +51,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// eslint-disable-next-line
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

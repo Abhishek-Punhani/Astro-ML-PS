@@ -44,7 +44,7 @@ function plotGraph1(
   const zoomGestures = {
     pan: {
       enabled: true,
-      modifierKey: "ctrl" as "ctrl",
+      modifierKey: "ctrl" as const,
       mode: "xy" as const,
     },
     zoom: {
@@ -153,7 +153,7 @@ function plotGraph2(
   const zoomGestures = {
     pan: {
       enabled: true,
-      modifierKey: "ctrl" as "ctrl",
+      modifierKey: "ctrl" as const,
     },
     zoom: {
       wheel: {
@@ -265,7 +265,7 @@ function plotGraph3(
   const zoomGestures = {
     pan: {
       enabled: true,
-      modifierKey: "ctrl" as "ctrl",
+      modifierKey: "ctrl" as const,
     },
     zoom: {
       wheel: {

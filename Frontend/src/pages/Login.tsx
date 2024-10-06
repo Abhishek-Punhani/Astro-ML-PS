@@ -122,10 +122,10 @@ export const LoginForm: React.FC = () => {
             <GoogleOAuthProvider clientId={clientid}>
               <GoogleLogin
                 onSuccess={(credentialResponse) => {
-                  let decode = jwtDecode<any>(
+                  const decode = jwtDecode<any>(
                     credentialResponse.credential as string
                   );
-                  let user: GoogleUser = {
+                  const user: GoogleUser = {
                     username: decode.name,
                     email: decode.email,
                     googleId: decode.sub.toString(),

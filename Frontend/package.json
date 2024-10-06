@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "format": "prettier --check src",
     "fix-format": "prettier --write src",
-    "lint": "eslint --fix"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

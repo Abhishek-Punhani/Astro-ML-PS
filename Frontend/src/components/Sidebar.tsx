@@ -8,7 +8,7 @@ interface SidebarProps {
 
 const Sidebar = ({ SidebarStatus }: SidebarProps) => {
   const { user, getData, setData } = useAuth();
-  let array = user?.project_names || [];
+  const array = user?.project_names || [];
   const navigate = useNavigate();
 
   const [BarOpen, setBarOpen] = useState(false);
@@ -21,16 +21,16 @@ const Sidebar = ({ SidebarStatus }: SidebarProps) => {
     setBarOpen(!BarOpen);
     const res: any = await getData(user?.token as string, id);
     console.log(res);
-    let X = res["x"];
-    let Y = res["y"];
-    let MF = res["time_of_occurances"];
-    let TOC = res["time_corresponding_peak_flux"];
-    let left = res["left"];
-    let right = res["right"];
-    let leftx: number[] = [];
-    let lefty: number[] = [];
-    let rightx: number[] = [];
-    let righty: number[] = [];
+    const X = res["x"];
+    const Y = res["y"];
+    const MF = res["time_of_occurances"];
+    const TOC = res["time_corresponding_peak_flux"];
+    const left = res["left"];
+    const right = res["right"];
+    const leftx: number[] = [];
+    const lefty: number[] = [];
+    const rightx: number[] = [];
+    const righty: number[] = [];
 
     left.forEach((ele: number) => {
       if (ele >= 0 && ele < X.length && ele < Y.length) {
