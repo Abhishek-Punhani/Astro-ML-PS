@@ -245,7 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     token: string
   ) => {
     console.log(current_password, new_password, token);
-    const response = await fetch("http://localhost:8080/user/change-password", {
+    const response = await fetch("http://localhost:8080/auth/change-password", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -269,7 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const verifyUserOtp = async (otp: number, rtoken: string, token: string) => {
     const response = await fetch(
-      "http://localhost:8080/user/verify-change-password",
+      "http://localhost:8080/auth/verify-change-password",
       {
         method: "POST",
         credentials: "include",
@@ -291,7 +291,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const analyze = async (data: any, token: string) => {
-    const response = await fetch("http://localhost:8080/user/analyze", {
+    const response = await fetch("http://localhost:5000/user/analyze", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -310,15 +310,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const resendOtp = async (ref_token: string) => {
     if (user?.token) {
-      const response = await fetch("http://localhost:8080/user/resend-otp", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user?.token}`,
-        },
-        body: JSON.stringify({ ref_token }),
-      });
+      const response = await fetch(
+        "http://localhost:8080/auth/resend-change-otp",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user?.token}`,
+          },
+          body: JSON.stringify({ ref_token }),
+        }
+      );
       const data = await response.json();
       if (response.ok && vtoken && reftoken) {
         SetVtoken(data.token);
@@ -366,7 +369,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const saveResult = async (data: any, token: string) => {
-    const response = await fetch("http://localhost:8080/user/save", {
+    const response = await fetch("http://localhost:5000/user/save", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -390,7 +393,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const getData = async (token: string, id: string) => {
     const response = await fetch(
-      `http://localhost:8080/user/get-project/${id}`,
+      `http://localhost:5000/user/get-project/${id}`,
       {
         method: "GET",
         credentials: "include",

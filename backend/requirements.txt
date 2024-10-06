@@ -12,3 +12,4 @@ scikit-learn
 pylint
 requests
 email-validator
+gunicorn

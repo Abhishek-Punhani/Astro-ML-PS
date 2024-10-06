@@ -10,6 +10,10 @@ from controllers.auth_controller import (
     forgot_password,
     resendOtp,
     githubCallback,
+    get_user_profile,
+    change_password,
+    resendChangeOtp,
+    verifyChangeOtp,
 )
 
 auth_blueprint = Blueprint("auth", __name__)
@@ -25,3 +29,7 @@ auth_blueprint.route("/resend-otp", methods=["POST"])(resendOtp)
 auth_blueprint.route("/send-otp", methods=["POST"])(sendOtp)
 auth_blueprint.route("/forgot-password", methods=["POST"])(forgot_password)
 auth_blueprint.route("/github/callback", methods=["POST"])(githubCallback)
+auth_blueprint.route("/profile", methods=["GET"])(get_user_profile)
+auth_blueprint.route("/change-password", methods=["POST"])(change_password)
+auth_blueprint.route("/verify-change-password", methods=["POST"])(verifyChangeOtp)
+auth_blueprint.route("/resend-change-otp", methods=["POST"])(resendChangeOtp)
