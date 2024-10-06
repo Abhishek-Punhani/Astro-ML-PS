@@ -24,6 +24,8 @@ class PeakResult(Base):
     y = Column(JSON, nullable=False)
     time_of_occurances = Column(JSON, nullable=False)
     time_corresponding_peak_flux = Column(JSON, nullable=False)
+    right = Column(JSON, nullable=False)  # New field
+    left = Column(JSON, nullable=False)   # New field
     silhouette_score = Column(Float)
     data_hash = Column(String(64), nullable=False)
     project_name = Column(String, nullable=False)
@@ -40,6 +42,8 @@ class PeakResult(Base):
             "y": self.y,
             "time_of_occurances": self.time_of_occurances,
             "time_corresponding_peak_flux": self.time_corresponding_peak_flux,
+            "right": self.right,  
+            "left": self.left,
             "silhouette_score": self.silhouette_score,
             "data_hash": self.data_hash,
             "project_name": self.project_name,

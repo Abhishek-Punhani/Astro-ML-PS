@@ -494,7 +494,9 @@ def save():
             time_corresponding_peak_flux=data["time_corresponding_peak_flux"],
             silhouette_score=data["silhouette_avg"],
             data_hash=data_hash,
-            project_name=data["projectName"]
+            project_name=data["projectName"],
+            right=data["right"],
+            left=data["left"]
         )
 
         # Add the new result to the database

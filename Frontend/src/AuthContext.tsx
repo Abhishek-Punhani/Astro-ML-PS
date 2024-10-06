@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-
+import { useToast } from "./components/toast-context";
 export interface Project {
   id: string;
   project_name: string;
@@ -14,6 +14,8 @@ export interface User {
 }
 
 interface AuthContextType {
+  data: any;
+  setData: React.Dispatch<any>;
   vtoken: string | null;
   reftoken: string | null;
   user: User | null;
@@ -64,6 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [vtoken, SetVtoken] = useState<string | null>(null);
   const [reftoken, SetReftoken] = useState<string | null>(null);
   const [access, setAccess] = useState<"link" | "reset" | null>(null);
+  const [data, setData] = useState<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -71,6 +74,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(JSON.parse(localStorage.getItem("user") || "null"));
     }
   }, []);
+  const { open } = useToast();
+  const SuccessfulToast = (messsage: string) => {
+    console.log(messsage);
+    open({
+      message: {
+        heading: "Success",
+        content: messsage,
+      },
+      duration: 3000,
+      position: "top-center",
+      color: "success",
+    });
+  };
+  const FailedToast = (messsage: string) => {
+    console.log(messsage);
+    open({
+      message: {
+        heading: "Failed",
+        content: messsage,
+      },
+      duration: 3000,
+      position: "top-center",
+      color: "error",
+    });
+  };
+  const InfoToast = (messsage: string) => {
+    console.log(messsage);
+    open({
+      message: {
+        heading: "Info",
+        content: messsage,
+      },
+      duration: 3000,
+      position: "top-center",
+      color: "info",
+    });
+  };
 
   const login = async (email: string, password: string) => {
     const response = await fetch("http://localhost:8080/auth/login", {
@@ -83,8 +123,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -105,9 +147,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       SetReftoken(null);
       localStorage.setItem("token", data.user.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      SuccessfulToast("Login Successfull");
       setUser(data.user);
-      console.log(data.user);
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -127,8 +170,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -148,8 +193,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -164,8 +211,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const data = await response.json();
     if (response.ok) {
       setAccess("link");
+      InfoToast("Link sent check Your Mail");
       return;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -173,6 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    SuccessfulToast("Logout Successfull");
     setUser(null);
   };
 
@@ -212,8 +262,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -233,8 +285,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     );
     const data = await response.json();
     if (response.ok && vtoken) {
+      SuccessfulToast("Password Changed Successfully");
       SetVtoken(null);
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -272,8 +326,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (response.ok && vtoken && reftoken) {
         SetVtoken(data.token);
         SetReftoken(data.rtoken);
+        InfoToast("Otp sent check Your Mail");
         return data.token;
       } else {
+        FailedToast("Something Went Wrong !");
         throw new Error("Something Went Wrong !");
       }
     }
@@ -304,8 +360,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (response.ok) {
       SetVtoken(data.token);
       SetReftoken(data.rtoken);
+      InfoToast("Otp sent check Your Mail");
       return data.token;
     } else {
+      FailedToast(data.error);
       throw new Error(data.error);
     }
   };
@@ -321,11 +379,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       body: JSON.stringify({ data }),
     });
     const res = await response.json();
+    console.log(res);
     if (response.ok) {
-      const user_projects = user?.project_names || [];
-      const project_names = [...user_projects, res.project_name];
-      if (user) {
+      if (res?.data) {
+        InfoToast(`Project is already saved as ${res.data}`);
+      }
+      if (user && res.project_name) {
+        const user_projects = user?.project_names || [];
+        const project_names = [...user_projects, res.project_name];
         setUser({ ...user, project_names });
+        InfoToast("Project Saved Successfully!");
       }
       return res;
     } else {
@@ -374,6 +437,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         githubLogin,
         saveResult,
         getData,
+        data,
+        setData,
       }}>
       {children}
     </AuthContext.Provider>

@@ -138,7 +138,10 @@ const Navbar = () => {
                 </Link>
                 <div
                   className="text-lg p-4 hover:underline cursor-pointer"
-                  onClick={handleLogout}>
+                  onClick={() => {
+                    handleLogout();
+                    setNavMenuOpen(false);
+                  }}>
                   Logout
                 </div>
               </div>

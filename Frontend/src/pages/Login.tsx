@@ -8,7 +8,6 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
 import { GithubLoginButton } from "react-social-login-buttons";
-
 interface GoogleUser {
   username: string;
   email: string;
