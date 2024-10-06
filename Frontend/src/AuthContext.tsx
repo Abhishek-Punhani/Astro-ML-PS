@@ -14,6 +14,8 @@ export interface User {
 }
 
 interface AuthContextType {
+  data: any;
+  setData: React.Dispatch<any>;
   vtoken: string | null;
   reftoken: string | null;
   user: User | null;
@@ -49,6 +51,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// eslint-disable-next-line
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -64,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [vtoken, SetVtoken] = useState<string | null>(null);
   const [reftoken, SetReftoken] = useState<string | null>(null);
   const [access, setAccess] = useState<"link" | "reset" | null>(null);
+  const [data, setData] = useState<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -379,11 +383,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       body: JSON.stringify({ data }),
     });
     const res = await response.json();
+    console.log(res);
     if (response.ok) {
-      const user_projects = user?.project_names || [];
-      const project_names = [...user_projects, res.project_name];
-      if (user) {
+      if (res?.data) {
+        InfoToast(`Project is already saved as ${res.data}`);
+      }
+      if (user && res.project_name) {
+        const user_projects = user?.project_names || [];
+        const project_names = [...user_projects, res.project_name];
         setUser({ ...user, project_names });
+        InfoToast("Project Saved Successfully!");
       }
       return res;
     } else {
@@ -432,6 +441,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         githubLogin,
         saveResult,
         getData,
+        data,
+        setData,
       }}>
       {children}
     </AuthContext.Provider>

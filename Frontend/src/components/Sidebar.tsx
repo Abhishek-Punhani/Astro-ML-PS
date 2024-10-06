@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
   SidebarStatus: boolean;
 }
 
 const Sidebar = ({ SidebarStatus }: SidebarProps) => {
-  const { user, getData } = useAuth();
-  let array = user?.project_names || [];
+  const { user, getData, setData } = useAuth();
+  const array = user?.project_names || [];
+  const navigate = useNavigate();
 
   const [BarOpen, setBarOpen] = useState(false);
 
@@ -17,8 +19,41 @@ const Sidebar = ({ SidebarStatus }: SidebarProps) => {
 
   const handleChange = async (id: string) => {
     setBarOpen(!BarOpen);
-    const res = await getData(user?.token as string, id);
+    const res: any = await getData(user?.token as string, id);
     console.log(res);
+    const X = res["x"];
+    const Y = res["y"];
+    const MF = res["time_of_occurances"];
+    const TOC = res["time_corresponding_peak_flux"];
+    const left = res["left"];
+    const right = res["right"];
+    const leftx: number[] = [];
+    const lefty: number[] = [];
+    const rightx: number[] = [];
+    const righty: number[] = [];
+
+    left.forEach((ele: number) => {
+      if (ele >= 0 && ele < X.length && ele < Y.length) {
+        // Ensure index is valid
+        leftx.push(X[ele]);
+        lefty.push(Y[ele]);
+      } else {
+        console.warn(`Invalid index ${ele} in left array`);
+      }
+    });
+    right.forEach((ele: number) => {
+      if (ele >= 0 && ele < X.length && ele < Y.length) {
+        // Ensure index is valid
+        rightx.push(X[ele]);
+        righty.push(Y[ele]);
+      } else {
+        console.warn(`Invalid index ${ele} in left array`);
+      }
+    });
+
+    const plotData = [X, Y, MF, TOC, leftx, lefty, rightx, righty] as any[];
+    setData(plotData);
+    navigate(`history/${id}`);
   };
 
   return (

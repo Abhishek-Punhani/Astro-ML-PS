@@ -19,6 +19,7 @@ export const GitHubCallback: React.FC = () => {
     } else {
       navigate("/login");
     }
+    // eslint-disable-next-line
   }, []);
 
   return (

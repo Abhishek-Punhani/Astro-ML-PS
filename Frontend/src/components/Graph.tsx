@@ -20,6 +20,7 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
   const tabContainerRef = useRef<HTMLDivElement | null>(null);
   const resetZoomRef = useRef<HTMLButtonElement | null>(null);
   const loaderAnimationResetRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     if (GraphData1) GraphData1.destroy();
     if (GraphData2) GraphData2.destroy();
@@ -33,19 +34,19 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
       const resetZoom = resetZoomRef.current;
       const loaderAnimationReset = loaderAnimationResetRef.current;
 
-      let chart1 = plotGraph1(
+      const chart1 = plotGraph1(
         plotData,
         ctx,
         resetZoom as HTMLElement,
         loaderAnimationReset as HTMLElement
       );
-      let chart2 = plotGraph2(
+      const chart2 = plotGraph2(
         plotData,
         ctx1 as CanvasRenderingContext2D,
         resetZoom as HTMLElement,
         loaderAnimationReset as HTMLElement
       );
-      let chart3 = plotGraph3(
+      const chart3 = plotGraph3(
         plotData,
         ctx2 as CanvasRenderingContext2D,
         resetZoom as HTMLElement,
@@ -85,6 +86,7 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
       if (GraphData2) GraphData2.destroy();
       if (GraphData3) GraphData3.destroy();
     };
+    // eslint-disable-next-line
   }, [plotData]);
   const RemoveGraph = () => {
     if (GraphData1) {

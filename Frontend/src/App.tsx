@@ -22,6 +22,7 @@ import ChangePassword from "./pages/ChangePassword";
 import { GitHubCallback } from "./pages/githubCallback";
 import { ToastProvider } from "./components/Toast";
 import ErrorPage from "./pages/ErrorPage";
+import History from "./pages/History";
 const AppContent: React.FC = () => {
   const { user, vtoken, access } = useAuth();
   const token = user?.token;
@@ -75,6 +76,10 @@ const AppContent: React.FC = () => {
             <Route
               path="/settings/change-password"
               element={token ? <ChangePassword /> : <Navigate to={"/"} />}
+            />
+            <Route
+              path="/history/:id"
+              element={token ? <History /> : <Navigate to={"/"} />}
             />
             <Route path="*" element={<ErrorPage />} />
           </Routes>

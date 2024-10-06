@@ -4,7 +4,6 @@ import { useAuth } from "../AuthContext";
 import "../utils/graph.css";
 import * as XLSX from "xlsx";
 import Graph from "./Graph";
-declare const astro: any;
 const HomePage = () => {
   const { analyze, user, saveResult } = useAuth() as unknown as {
     analyze: (data: any, token: string) => Promise<{ res: any }>;
@@ -12,6 +11,7 @@ const HomePage = () => {
     saveResult: (data: any, token: string) => void;
   };
   const [Data, setData] = useState<any>(null);
+  const [saved, setSaved] = useState<boolean>(false);
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "/fits.js";
@@ -40,7 +40,7 @@ const HomePage = () => {
             const hdu = fits.getHDU();
             const imageData = hdu.data;
             const data: any = [];
-            let table = fits.getDataUnit(1);
+            const table = fits.getDataUnit(1);
             table.getRows(0, imageData.rows, function (rows: any) {
               data.push(rows);
               resolve(data);
@@ -74,11 +74,11 @@ const HomePage = () => {
           reader.readAsBinaryString(file);
         }
       } else if (extension == "txt" || extension == "asc") {
-        let reader = new FileReader();
+        const reader = new FileReader();
         reader.onload = function () {
-          let data = reader.result;
-          let rows = typeof data === "string" ? data.split("\n") : [];
-          let dataArray = rows.map((row: string) =>
+          const data = reader.result;
+          const rows = typeof data === "string" ? data.split("\n") : [];
+          const dataArray = rows.map((row: string) =>
             row.split(/\s+/).filter((element: string) => element !== "")
           );
           console.log(dataArray);
@@ -105,19 +105,19 @@ const HomePage = () => {
   const onsubmit = async (data: any) => {
     const projectName = data.projectName;
     try {
-      let res = await handleFileChange(fileInput.current?.files?.[0] ?? null);
-      let responseData: any = await analyze(res, user?.token as string);
+      const res = await handleFileChange(fileInput.current?.files?.[0] ?? null);
+      const responseData: any = await analyze(res, user?.token as string);
       setData({ ...responseData.res, projectName, fileName });
-      let X = responseData.res["x"];
-      let Y = responseData.res["y"];
-      let MF = responseData.res["time_of_occurances"];
-      let TOC = responseData.res["time_corresponding_peak_flux"];
-      let left = responseData.res["left"];
-      let right = responseData.res["right"];
-      let leftx: number[] = [];
-      let lefty: number[] = [];
-      let rightx: number[] = [];
-      let righty: number[] = [];
+      const X = responseData.res["x"];
+      const Y = responseData.res["y"];
+      const MF = responseData.res["time_of_occurances"];
+      const TOC = responseData.res["time_corresponding_peak_flux"];
+      const left = responseData.res["left"];
+      const right = responseData.res["right"];
+      const leftx: number[] = [];
+      const lefty: number[] = [];
+      const rightx: number[] = [];
+      const righty: number[] = [];
 
       left.forEach((ele: number) => {
         if (ele >= 0 && ele < X.length && ele < Y.length) {
@@ -156,10 +156,12 @@ const HomePage = () => {
     reset();
     setFileName("Select File");
   };
-  const SaveProject = () => {
-    console.log(Data);
+  const SaveProject = async () => {
     if (Data) {
-      saveResult(Data, user?.token as string);
+      const res: any = await saveResult(Data, user?.token as string);
+      if (res?.data || res?.project_name) {
+        setSaved(true);
+      }
     }
   };
   return (
@@ -215,13 +217,14 @@ const HomePage = () => {
           <Graph plotData={plotData} remove={RemoveGraph} />
           <div className="w-full">
             <button
-              className=" p-2 rounded-lg border text-white w-full"
+              disabled={saved}
+              className={` p-2 rounded-lg border text-white w-full ${saved ? "border-green-400 text-green-400" : ""}`}
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 SaveProject();
               }}>
-              Save Project
+              {saved ? "Saved" : "Save Project"}
             </button>
           </div>
         </div>
