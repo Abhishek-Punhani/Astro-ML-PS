@@ -17,9 +17,11 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
   const ctxRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef1 = useRef<HTMLCanvasElement | null>(null);
   const ctxRef2 = useRef<HTMLCanvasElement | null>(null);
+  const tableRef = useRef<HTMLDivElement | null>(null);
   const tabContainerRef = useRef<HTMLDivElement | null>(null);
   const resetZoomRef = useRef<HTMLButtonElement | null>(null);
   const loaderAnimationResetRef = useRef<HTMLDivElement | null>(null);
+  const [currentTab, setCurrentTab] = useState('Peak Flux')
 
   useEffect(() => {
     if (GraphData1) GraphData1.destroy();
@@ -28,6 +30,7 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
     const ctx = ctxRef.current?.getContext("2d");
     const ctx1 = ctxRef1.current?.getContext("2d");
     const ctx2 = ctxRef2.current?.getContext("2d");
+    setCurrentTab("Peak Flux");
     if (ctx && ctx1 && ctx2 && plotData) {
       // Ensure the canvas context is available
       console.log("Creating new chart instances");
@@ -52,6 +55,37 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
         resetZoom as HTMLElement,
         loaderAnimationReset as HTMLElement
       );
+      const table = tableRef.current;
+      if (table) {
+        table.innerHTML = `<table style="border-collapse: collapse; width: 100%; height: 100%;" className="table-auto mt-4 text-white"> 
+          <thead>
+        <tr>
+          <th style="border: 1px solid white; padding: 8px;">S.no.</th>
+          <th style="border: 1px solid white; padding: 8px;">Peak Flare occurrence time</th>
+          <th style="border: 1px solid white; padding: 8px;">Count/s</th>
+          <th style="border: 1px solid white; padding: 8px;">Starting Time</th>
+          <th style="border: 1px solid white; padding: 8px;">Ending Time</th>
+          <th style="border: 1px solid white; padding: 8px;">Rise Time</th>
+          <th style="border: 1px solid white; padding: 8px;">Decay Time</th>
+          <th style="border: 1px solid white; padding: 8px;">Total Time</th>
+        </tr>
+          </thead>
+          <tbody>
+        ${plotData[2].map((mf: number, index: number) => (
+          `<tr key=${index}>
+            <td style="border: 1px solid white; padding: 8px;">${index + 1}</td>
+            <td style="border: 1px solid white; padding: 8px;">${mf}</td>
+            <td style="border: 1px solid white; padding: 8px;">${plotData[3][index]}</td>
+            <td style="border: 1px solid white; padding: 8px;">${plotData[4][index]}</td>
+            <td style="border: 1px solid white; padding: 8px;">${plotData[6][index]}</td>
+            <td style="border: 1px solid white; padding: 8px;">${plotData[8][index]}</td>
+            <td style="border: 1px solid white; padding: 8px;">${plotData[9][index]}</td>
+            <td style="border: 1px solid white; padding: 8px;">${plotData[9][index] + plotData[8][index]}</td>
+          </tr>`
+        )).join('')}
+          </tbody>
+        </table>`;
+      }
       setGraphData1(chart1);
       setGraphData2(chart2);
       setGraphData3(chart3);
@@ -79,7 +113,12 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
         if (chart3) {
           chart3.style.display = activeTab === "chart-3" ? "block" : "none";
         }
+        const table = document.getElementById("table");
+        if (table) {
+          table.style.display = activeTab === "table" ? "block" : "none";
+        }
       });
+     
     });
     return () => {
       if (GraphData1) GraphData1.destroy();
@@ -100,6 +139,46 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
     }
     remove();
   };
+  function downloadCSV(): void {
+    if (!plotData || !plotData[2] || !plotData[2].length) {
+      console.error("No data available to download");
+      return;
+    }
+
+    const headers = [
+      "S.no.",
+      "Peak Flare occurrence time",
+      "Count/s",
+      "Starting Time",
+      "Ending Time",
+      "Rise Time",
+      "Decay Time",
+      "Total Time"
+    ];
+
+    const rows = plotData[2].map((mf: number, index: number) => [
+      index + 1,
+      mf,
+      plotData[3][index],
+      plotData[4][index],
+      plotData[6][index],
+      plotData[8][index],
+      plotData[9][index],
+      plotData[9][index] + plotData[8][index]
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((row: number[]) => row.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "plot_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
   return (
     <>
       <div className="w-full flex justify-between items-center mt-16">
@@ -117,19 +196,24 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
           className="tab-container gap-4 flex items-center justify-evenly "
           ref={tabContainerRef}>
           <button
-            className="tab-button active p-2 rounded-lg border text-white"
-            data-tab="chart-1">
+            className="tab-button p-2 rounded-lg border text-white"
+            data-tab="chart-1" onClick={()=>setCurrentTab("Peak Flux")}>
             Peak Flux
           </button>
           <button
             className="tab-button p-2 rounded-lg border text-white"
-            data-tab="chart-2">
+            data-tab="chart-2" onClick={()=>setCurrentTab("Rising Time")}>
             Rising Time
           </button>
           <button
             className="tab-button p-2 rounded-lg border text-white"
-            data-tab="chart-3">
+            data-tab="chart-3" onClick={()=>setCurrentTab("Decay Time")}>
             Decay Time
+          </button>
+          <button
+            className="tab-button p-2 rounded-lg border text-white"
+            data-tab="table" onClick={()=>setCurrentTab("Table")}>
+            Table
           </button>
         </div>
       </div>
@@ -138,7 +222,8 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
         <canvas id="chart-1" ref={ctxRef} className="w-[70vw]"></canvas>
         <canvas id="chart-2" ref={ctxRef1} style={{ display: "none" }}></canvas>
         <canvas id="chart-3" ref={ctxRef2} style={{ display: "none" }}></canvas>
-        <div className="button-container">
+        <div id="table" ref={tableRef} style={{ display: "none",color:"white" }} className={`${currentTab !== 'Table' && 'hidden'} w-[70vw]`}></div>
+        <div className={`button-container ${currentTab == 'Table' && 'hidden'}`}>
           <button
             className="reset-button p-2 rounded-lg border text-white"
             id="reset-zoom"
@@ -149,6 +234,13 @@ const Graph: React.FC<GraphProps> = React.memo(({ plotData, remove }) => {
             className="loader hidden"
             id="loader-animation-reset"
             ref={loaderAnimationResetRef}></div>
+        </div>
+        <div className={`button-container ${currentTab !== 'Table' && 'hidden'}`}>
+            <button
+            className="p-2 rounded-lg border text-white"
+            onClick={downloadCSV}>
+            Download Csv
+            </button>
         </div>
       </div>
     </>

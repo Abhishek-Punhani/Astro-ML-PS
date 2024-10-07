@@ -403,13 +403,17 @@ def analyze():
 
         # Check if 'data' key exists and is a list
         if "data" in data and isinstance(data["data"], list):
-            req_data = data["data"][0]
-
+            req_data = data["data"]
+            # print(req_data)
             # Ensure 'FRACEXP' is set to 0 if it's None for each entry
             for entry in req_data:
                 if isinstance(entry, dict):  # Ensure each entry is a dictionary
                     if entry.get("FRACEXP") is None:
                         entry["FRACEXP"] = 0
+                if isinstance(entry, dict):  # Ensure each entry is a dictionary
+                    if entry.get("ERROR") is None:
+                        entry["ERROR"] = 0
+
 
             # Define dtype for structured array
             dtype = np.dtype(

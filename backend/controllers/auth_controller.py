@@ -179,7 +179,7 @@ def login():
                 {
                     "message": "OTP sent successfully.",
                     "token": token,
-                    "ref_token": rtoken,
+                    "rtoken": rtoken,
                 }
             ),
             200,
@@ -564,7 +564,9 @@ def resendOtp():
         auth_db = get_auth_db()
         otp_db=get_otp_db()
         data = request.get_json()
+        print(data)
         if not data or "ref_token" not in data:
+            print("error here")
             return jsonify({"error": "Something Went Wrong,try again later!."}), 400
 
         refresh_token = data["ref_token"]
@@ -572,7 +574,8 @@ def resendOtp():
             check = jwt.decode(
                 refresh_token, os.getenv("REFRESH_TOKEN_SECRET"), algorithms=["HS256"]
             )
-        except Exception:
+        except Exception as e:
+            print(f"JWT decoding failed:{e}")
             return (
                 jsonify(
                     {

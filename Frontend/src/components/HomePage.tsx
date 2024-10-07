@@ -12,6 +12,7 @@ const HomePage = () => {
   };
   const [Data, setData] = useState<any>(null);
   const [saved, setSaved] = useState<boolean>(false);
+  const [tableData, setTableData] = useState<any[]>([]);
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "/fits.js";
@@ -43,7 +44,7 @@ const HomePage = () => {
             const table = fits.getDataUnit(1);
             table.getRows(0, imageData.rows, function (rows: any) {
               data.push(rows);
-              resolve(data);
+              resolve(data[0]);
             });
           });
         } else {
@@ -63,11 +64,22 @@ const HomePage = () => {
 
           // Get the first sheet
           const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-
-          // Convert sheet to JSON
-          const sheetData = XLSX.utils.sheet_to_json(sheet);
-          console.log(sheetData);
+            const sheet = workbook.Sheets[sheetName];
+            const data:any = [];
+            // Add first column as TIME and second as RATE
+            XLSX.utils.sheet_to_json(sheet, { header: 1 }).forEach((row: any) => {
+              if (Array.isArray(row)) {
+                const rowData: any = { TIME: row[0], RATE: row[1] };
+                if (row[2] !== undefined) {
+                  rowData.ERROR = row[2];
+                }
+                if (row[3] !== undefined) {
+                  rowData["FRACE XP"] = row[3];
+                }
+                data.push(rowData);
+              }
+            });
+            resolve(data);
         };
 
         if (file) {
@@ -76,12 +88,26 @@ const HomePage = () => {
       } else if (extension == "txt" || extension == "asc") {
         const reader = new FileReader();
         reader.onload = function () {
-          const data = reader.result;
-          const rows = typeof data === "string" ? data.split("\n") : [];
+          const readdata = reader.result;
+          const rows = typeof readdata === "string" ? readdata.split("\n") : [];
           const dataArray = rows.map((row: string) =>
             row.split(/\s+/).filter((element: string) => element !== "")
           );
-          console.log(dataArray);
+          const data:any[] = [];
+          dataArray.forEach((row:any) => {
+            if (Array.isArray(row) && (parseFloat(row[0]) && parseFloat(row[1]))) {
+              const rowData: any = { TIME: parseFloat(row[0]), RATE: parseFloat(row[1]) };
+              if (row[2] !== undefined) {
+                rowData.ERROR = parseFloat(row[2]);
+              }
+              if (row[3] !== undefined) {
+                rowData["FRACE XP"] = parseFloat(row[3]);
+              }
+              data.push(rowData);
+            }
+          });
+          console.log(data);
+          resolve(data);
         };
         reader.readAsText(file as Blob);
       } else {
@@ -138,8 +164,9 @@ const HomePage = () => {
         }
       });
 
-      setPlotData([X, Y, MF, TOC, leftx, lefty, rightx, righty] as any[]);
+      setPlotData([X, Y, MF, TOC, leftx, lefty, rightx, righty,left,right] as any[]);
       setisGraphReady(true);
+
     } catch (error) {
       setError("root", {
         type: "manual",
@@ -165,8 +192,10 @@ const HomePage = () => {
     }
   };
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-screen">
+    <div className="flex flex-col items-center justify-center">
+      
       {!isGraphReady && (
+        <div className="h-screen w-screen flex flex-col items-center justify-center">
         <form
           className="flex flex-col gap-12  justify-center items-center font-unic text-white fadein"
           onSubmit={handleSubmit(onsubmit)}>
@@ -210,8 +239,9 @@ const HomePage = () => {
               Analyse
             </button>
           </div>
-        </form>
+        </form></div> 
       )}
+      
       {isGraphReady && plotData && (
         <div>
           <Graph plotData={plotData} remove={RemoveGraph} />
@@ -226,8 +256,10 @@ const HomePage = () => {
               }}>
               {saved ? "Saved" : "Save Project"}
             </button>
+      </div>
+  
           </div>
-        </div>
+        
       )}
     </div>
   );

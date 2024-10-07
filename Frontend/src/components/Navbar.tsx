@@ -38,19 +38,23 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
-  const sidebarRef = useRef<HTMLDivElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const profileIconRef = useRef<HTMLImageElement>(null);
   const navMenuRef = useRef<HTMLDivElement>(null);
   const menuBurgerRef = useRef<HTMLDivElement>(null);
-
-  useClickOutside(sidebarRef, profileIconRef, () => {
+  const sideBarRef = useRef<HTMLDivElement>(null);
+  const sideBarButtonRef = useRef<HTMLDivElement>(null);
+  useClickOutside(profileMenuRef, profileIconRef, () => {
     setMenuOpen(false);
   });
 
   useClickOutside(navMenuRef, menuBurgerRef, () => {
     setNavMenuOpen(false);
   });
-
+  useClickOutside(sideBarRef, sideBarButtonRef, () => {
+    setSideBarOpen(false);
+  });
+  
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -58,11 +62,11 @@ const Navbar = () => {
 
   return (
     <>
-      {user && path === "/analyser" && <Sidebar SidebarStatus={sideBarOpen} />}
+      <div ref={sideBarRef}>{user && path === "/analyser" && <Sidebar SidebarStatus={sideBarOpen}/>}</div>
       <div className="navbar h-20 w-full bg-[rgb(0,0,0,0.2)] flex justify-between items-center px-4 fixed top-0 z-10 text-white font-unic">
         <div className="flex flex-row gap-4">
           {user && path === "/analyser" && (
-            <svg
+            <div ref={sideBarButtonRef}><svg
               width="44"
               height="44"
               viewBox="0 0 24 24"
@@ -75,7 +79,7 @@ const Navbar = () => {
                 clipRule="evenodd"
                 d="M3 8C3 7.44772 3.44772 7 4 7H20C20.5523 7 21 7.44772 21 8C21 8.55228 20.5523 9 20 9H4C3.44772 9 3 8.55228 3 8ZM3 16C3 15.4477 3.44772 15 4 15H14C14.5523 15 15 15.4477 15 16C15 16.5523 14.5523 17 14 17H4C3.44772 17 3 16.5523 3 16Z"
                 fill="#FFFFFF"></path>
-            </svg>
+            </svg></div>
           )}
           <h1
             className="font-bold text-4xl cursor-pointer"
@@ -131,7 +135,7 @@ const Navbar = () => {
                 className={`absolute top-20 w-56 flex flex-col py-4 px-4 gap-2 z-20 bg-[rgb(0,0,0,0.4)] rounded-lg right-0 ${
                   menuOpen ? "" : "hidden"
                 }`}
-                ref={sidebarRef}>
+                ref={profileMenuRef}>
                 <div onClick={() => setMenuOpen(false)}>
                   <Link
                     to={path === "/settings" ? "/" : "/settings"}
