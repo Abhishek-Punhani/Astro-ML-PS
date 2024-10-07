@@ -118,60 +118,60 @@ const OTPForm: React.FC = () => {
         <div className="relative min-h-screen flex flex-col justify-center overflow-hidden">
           <div className="w-full max-w-5xl mx-auto px-6 md:px-8 py-28">
             <div className="flex justify-center">
-                <div className="max-w-lg mx-auto text-center border text-white font-unic px-6 sm:px-10 py-12 rounded-2xl shadow-lg">
+              <div className="max-w-lg mx-auto text-center border text-white font-unic px-6 sm:px-10 py-12 rounded-2xl shadow-lg">
                 <header className="mb-10">
                   <h1 className="text-3xl font-bold mb-5">OTP Verification</h1>
                   <p className="text-[16px] text-slate-500">
-                  Enter the 6-digit verification code that was sent to your
-                  email.
+                    Enter the 6-digit verification code that was sent to your
+                    email.
                   </p>
                 </header>
 
                 <form id="otp-form" onSubmit={handleSubmit}>
                   <div className="flex items-center justify-center gap-4">
-                  {otp.map((digit, index) => (
-                    <input
-                    key={index}
-                    ref={(el) => (inputsRef.current[index] = el)}
-                    type="text"
-                    className="w-16 h-16 text-center text-3xl font-extrabold text-white border bg-transparent hover:border-slate-200 appearance-none rounded-lg p-4 outline-none"
-                    value={digit}
-                    maxLength={1}
-                    onChange={(e) => handleInputChange(e, index)}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    onFocus={handleFocus}
-                    onPaste={handlePaste}
-                    pattern="\d*"
-                    />
-                  ))}
+                    {otp.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => (inputsRef.current[index] = el)}
+                        type="text"
+                        className="w-16 h-16 text-center text-3xl font-extrabold text-white border bg-transparent hover:border-slate-200 appearance-none rounded-lg p-4 outline-none"
+                        value={digit}
+                        maxLength={1}
+                        onChange={(e) => handleInputChange(e, index)}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
+                        onFocus={handleFocus}
+                        onPaste={handlePaste}
+                        pattern="\d*"
+                      />
+                    ))}
                   </div>
                   {error && <p className="text-red-500">{error}</p>}
                   {msg && <p className="text-green-500">{msg}</p>}
                   <div className="max-w-[280px] mx-auto mt-6">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full inline-flex justify-center whitespace-nowrap rounded-xl bg-transparent hover:bg-[rgb(0,0,0,0.4)] border px-4 py-3 text-lg font-medium text-white shadow-md shadow-indigo-950/10  transition-colors duration-150">
-                    Proceed
-                  </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full inline-flex justify-center whitespace-nowrap rounded-xl bg-transparent hover:bg-[rgb(0,0,0,0.4)] border px-4 py-3 text-lg font-medium text-white shadow-md shadow-indigo-950/10  transition-colors duration-150">
+                      Proceed
+                    </button>
                   </div>
                 </form>
 
                 <div className="text-sm text-slate-500 mt-6">
                   Didn't receive code?{" "}
                   <button
-                  className={`font-medium text-white ${timer == 0 && 'hover:underline'}`}
-                  type="button"
-                  onClick={(e) => {
-                  handleresend(e);
-                  setTimer(60); // Reset the timer when OTP is resent
-                  }}
-                  disabled={loading || timer > 0}>
-                  Resend 
+                    className={`font-medium text-white ${timer == 0 && "hover:underline"}`}
+                    type="button"
+                    onClick={(e) => {
+                      handleresend(e);
+                      setTimer(60); // Reset the timer when OTP is resent
+                    }}
+                    disabled={loading || timer > 0}>
+                    Resend
                   </button>
-                   {timer > 0 && ` After ${timer} seconds`}
+                  {timer > 0 && ` After ${timer} seconds`}
                 </div>
-                </div>
+              </div>
             </div>
           </div>
         </div>

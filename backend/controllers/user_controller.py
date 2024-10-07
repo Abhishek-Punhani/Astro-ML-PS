@@ -6,7 +6,7 @@ import numpy as np
 import random
 from flask import jsonify, request, g
 from sqlalchemy.exc import IntegrityError
-from db import get_auth_db,get_otp_db,get_data_db
+from db import get_auth_db, get_otp_db, get_data_db
 from models.peakResult import PeakResult
 from models.user import User as users
 from models.otp import OTP
@@ -14,7 +14,6 @@ import jwt
 from model import returnable
 from datetime import datetime, timezone, timedelta
 from emails.verification import send_verification_email
-
 
 
 def convert_numpy_to_native(data):
@@ -55,7 +54,6 @@ def convert_to_serializable(obj):
         return [convert_to_serializable(i) for i in obj]
     else:
         return obj
-
 
 
 def change_password():
@@ -136,7 +134,7 @@ def change_password():
         # Cleanup expired OTPs older than 330 seconds
         expiry_time = datetime.now(timezone.utc) - timedelta(seconds=330)
 
-        otp_db=get_otp_db()
+        otp_db = get_otp_db()
         otp_db.query(OTP).filter(OTP.created_at < expiry_time).delete()
 
         # Check if an OTP entry already exists for this user and delete it
@@ -162,7 +160,7 @@ def change_password():
             ),
             200,
         )
-    
+
     except IntegrityError:
         auth_db.rollback()
         otp_db.rollback()
@@ -171,7 +169,6 @@ def change_password():
     except Exception as e:
         print(f"Error in /auth/change-password: {e}")
         return jsonify({"error": "Internal server error"}), 500
-    
 
     finally:
         otp_db.close()
@@ -209,7 +206,7 @@ def verifyOtp():
         # Convert OTP to string and append the token
         otp_with_token = f"{otp_received}-{token_received}"
 
-        otp_db=get_otp_db()
+        otp_db = get_otp_db()
         # Verify if the OTP exists in the database
         otp_entry = otp_db.query(OTP).filter(OTP.otp == otp_with_token).first()
         if not otp_entry:
@@ -237,7 +234,7 @@ def verifyOtp():
         otp_db.delete(otp_entry)
         otp_db.commit()
         # Retrieve the user associated with the email
-        auth_db=get_auth_db()
+        auth_db = get_auth_db()
         user = auth_db.query(users).filter(users.email == email).first()
         if not user:
             return jsonify({"error": "User not found."}), 404
@@ -255,7 +252,7 @@ def verifyOtp():
         auth_db.commit()
 
         return jsonify({"message": "Password changed successfully."}), 200
-    
+
     except IntegrityError:
         auth_db.rollback()
         otp_db.rollback()
@@ -264,7 +261,7 @@ def verifyOtp():
     except Exception as e:
         print(f"Error in /auth/otp: {e}")
         return jsonify({"error": "Internal server error"}), 500
-    
+
     finally:
         auth_db.close()
         otp_db.close()
@@ -310,7 +307,7 @@ def resendOtp():
 
         decoded_token = jwt.decode(token, os.getenv("AUTH_SECRET"), algorithms="HS256")
         user_id = decoded_token["userId"]
-        auth_db=get_auth_db()
+        auth_db = get_auth_db()
         user = auth_db.query(users).filter(users.id == user_id).first()
         if not user:
             return jsonify({"error": "User not found."}), 404
@@ -343,7 +340,7 @@ def resendOtp():
         # Cleanup expired OTPs (older than 330 seconds)
         expiry_time = datetime.now(timezone.utc) - timedelta(seconds=330)
 
-        otp_db=get_otp_db()
+        otp_db = get_otp_db()
         otp_db.query(OTP).filter(OTP.created_at < expiry_time).delete()
 
         # Check if an OTP entry already exists for this email and delete it
@@ -369,7 +366,7 @@ def resendOtp():
             ),
             200,
         )
-    
+
     except IntegrityError:
         auth_db.rollback()
         otp_db.rollback()
@@ -377,7 +374,6 @@ def resendOtp():
 
     except Exception:
         return jsonify({"error": "Internal server error"}), 500
-    
 
     finally:
         otp_db.close()
@@ -413,7 +409,6 @@ def analyze():
                 if isinstance(entry, dict):  # Ensure each entry is a dictionary
                     if entry.get("ERROR") is None:
                         entry["ERROR"] = 0
-
 
             # Define dtype for structured array
             dtype = np.dtype(
@@ -505,10 +500,12 @@ def save():
 
         # Generate data hash
         data_hash = generate_data_hash(data)
-        data_db=get_data_db()
+        data_db = get_data_db()
         # Check if an existing result with the same data_hash exists
-        existing_result = data_db.query(PeakResult).filter(PeakResult.data_hash == data_hash).first()
-        
+        existing_result = (
+            data_db.query(PeakResult).filter(PeakResult.data_hash == data_hash).first()
+        )
+
         # If an existing result is found, check if it's already in the user's peak_result_ids
         if existing_result:
             if existing_result.id in user.peak_result_ids:
@@ -544,21 +541,26 @@ def save():
         data_db.commit()
         if new_result.id not in user.peak_result_ids:
             user.peak_result_ids.append(new_result.id)
-            auth_db.commit()  
+            auth_db.commit()
 
         project_name = {"id": new_result.id, "project_name": new_result.project_name}
 
-        return jsonify({"message": "Data saved successfully" ,"project_name":project_name}), 200
-    
+        return (
+            jsonify(
+                {"message": "Data saved successfully", "project_name": project_name}
+            ),
+            200,
+        )
+
     except IntegrityError:
         auth_db.rollback()
         data_db.rollback()
         return jsonify({"error": "An error occurred. Please try again."}), 500
-        
+
     except Exception as e:
         print(f"Exception: {e}")
         return jsonify({"error": "Internal server error."}), 500
-    
+
     finally:
         data_db.close()
         auth_db.close()
@@ -589,14 +591,14 @@ def getData(id):
             return jsonify({"error": "Data not found."}), 404
 
         return jsonify({"data": result.to_dict()}), 200
-    
+
     except IntegrityError:
         data_db.rollback()
-        return jsonify({"error":"Something Went Wrong!"}),500
+        return jsonify({"error": "Something Went Wrong!"}), 500
 
     except Exception as e:
         print(f"Exception: {e}")
         return jsonify({"error": "Internal server error."}), 500
-    
+
     finally:
         data_db.close()

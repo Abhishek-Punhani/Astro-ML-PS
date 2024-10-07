@@ -7,7 +7,7 @@
   background: #5e5e5e4e;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  padding: 10px;
 }
 canvas {
   height: min(60vh, 35vw) !important;

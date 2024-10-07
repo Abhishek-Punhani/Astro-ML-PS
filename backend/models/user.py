@@ -5,7 +5,6 @@ from sqlalchemy.ext.mutable import MutableList
 from db import AuthBase
 
 
-
 class User(AuthBase):
     __tablename__ = "users"
 

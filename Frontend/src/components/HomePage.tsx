@@ -12,7 +12,6 @@ const HomePage = () => {
   };
   const [Data, setData] = useState<any>(null);
   const [saved, setSaved] = useState<boolean>(false);
-  const [tableData, setTableData] = useState<any[]>([]);
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "/fits.js";
@@ -64,22 +63,22 @@ const HomePage = () => {
 
           // Get the first sheet
           const sheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            const data:any = [];
-            // Add first column as TIME and second as RATE
-            XLSX.utils.sheet_to_json(sheet, { header: 1 }).forEach((row: any) => {
-              if (Array.isArray(row)) {
-                const rowData: any = { TIME: row[0], RATE: row[1] };
-                if (row[2] !== undefined) {
-                  rowData.ERROR = row[2];
-                }
-                if (row[3] !== undefined) {
-                  rowData["FRACE XP"] = row[3];
-                }
-                data.push(rowData);
+          const sheet = workbook.Sheets[sheetName];
+          const data: any = [];
+          // Add first column as TIME and second as RATE
+          XLSX.utils.sheet_to_json(sheet, { header: 1 }).forEach((row: any) => {
+            if (Array.isArray(row)) {
+              const rowData: any = { TIME: row[0], RATE: row[1] };
+              if (row[2] !== undefined) {
+                rowData.ERROR = row[2];
               }
-            });
-            resolve(data);
+              if (row[3] !== undefined) {
+                rowData["FRACE XP"] = row[3];
+              }
+              data.push(rowData);
+            }
+          });
+          resolve(data);
         };
 
         if (file) {
@@ -93,10 +92,17 @@ const HomePage = () => {
           const dataArray = rows.map((row: string) =>
             row.split(/\s+/).filter((element: string) => element !== "")
           );
-          const data:any[] = [];
-          dataArray.forEach((row:any) => {
-            if (Array.isArray(row) && (parseFloat(row[0]) && parseFloat(row[1]))) {
-              const rowData: any = { TIME: parseFloat(row[0]), RATE: parseFloat(row[1]) };
+          const data: any[] = [];
+          dataArray.forEach((row: any) => {
+            if (
+              Array.isArray(row) &&
+              parseFloat(row[0]) &&
+              parseFloat(row[1])
+            ) {
+              const rowData: any = {
+                TIME: parseFloat(row[0]),
+                RATE: parseFloat(row[1]),
+              };
               if (row[2] !== undefined) {
                 rowData.ERROR = parseFloat(row[2]);
               }
@@ -164,9 +170,19 @@ const HomePage = () => {
         }
       });
 
-      setPlotData([X, Y, MF, TOC, leftx, lefty, rightx, righty,left,right] as any[]);
+      setPlotData([
+        X,
+        Y,
+        MF,
+        TOC,
+        leftx,
+        lefty,
+        rightx,
+        righty,
+        left,
+        right,
+      ] as any[]);
       setisGraphReady(true);
-
     } catch (error) {
       setError("root", {
         type: "manual",
@@ -193,55 +209,57 @@ const HomePage = () => {
   };
   return (
     <div className="flex flex-col items-center justify-center">
-      
       {!isGraphReady && (
         <div className="h-screen w-screen flex flex-col items-center justify-center">
-        <form
-          className="flex flex-col gap-12  justify-center items-center font-unic text-white fadein"
-          onSubmit={handleSubmit(onsubmit)}>
-          <h1 className="text-4xl font-bold">ANALYSE THE COSMOS</h1>
-          {errors.root && (
-            <p className="text-sm text-red-500">{errors.root.message}</p>
-          )}
-          {errors.projectName?.message && (
-            <p className="text-sm text-red-500">
-              {errors.projectName.message as string}
-            </p>
-          )}
-          <input
-            type="text"
-            placeholder="Project Name"
-            className="border text-lg px-2 py-2 sm:w-[500px] w-[300px] rounded-lg outline-none bg-transparent text-center"
-            {...register("projectName", {
-              required: "Project Name is Required",
-            })}
-          />
+          <form
+            className="flex flex-col gap-12  justify-center items-center font-unic text-white fadein"
+            onSubmit={handleSubmit(onsubmit)}>
+            <h1 className="text-4xl font-bold">ANALYSE THE COSMOS</h1>
+            {errors.root && (
+              <p className="text-sm text-red-500">{errors.root.message}</p>
+            )}
+            {errors.projectName?.message && (
+              <p className="text-sm text-red-500">
+                {errors.projectName.message as string}
+              </p>
+            )}
+            <input
+              type="text"
+              placeholder="Project Name"
+              className="border text-lg px-2 py-2 sm:w-[500px] w-[300px] rounded-lg outline-none bg-transparent text-center"
+              {...register("projectName", {
+                required: "Project Name is Required",
+              })}
+            />
 
-          <div
-            className="block border p-2 rounded-lg text-lg cursor-pointer sm:w-[500px] w-[300px] text-center hover:bg-slate-500"
-            onClick={() => {
-              fileInput.current?.click();
-            }}>
-            {fileName}
-          </div>
-          <input
-            type="file"
-            id="getFile"
-            className="hidden"
-            ref={fileInput}
-            onChange={() => {
-              setFileName(fileInput.current?.files?.[0]?.name ?? "Select File");
-            }}
-          />
+            <div
+              className="block border p-2 rounded-lg text-lg cursor-pointer sm:w-[500px] w-[300px] text-center hover:bg-slate-500"
+              onClick={() => {
+                fileInput.current?.click();
+              }}>
+              {fileName}
+            </div>
+            <input
+              type="file"
+              id="getFile"
+              className="hidden"
+              ref={fileInput}
+              onChange={() => {
+                setFileName(
+                  fileInput.current?.files?.[0]?.name ?? "Select File"
+                );
+              }}
+            />
 
-          <div className="btn-container">
-            <button className="btn" type="submit">
-              Analyse
-            </button>
-          </div>
-        </form></div> 
+            <div className="btn-container">
+              <button className="btn" type="submit">
+                Analyse
+              </button>
+            </div>
+          </form>
+        </div>
       )}
-      
+
       {isGraphReady && plotData && (
         <div>
           <Graph plotData={plotData} remove={RemoveGraph} />
@@ -256,10 +274,8 @@ const HomePage = () => {
               }}>
               {saved ? "Saved" : "Save Project"}
             </button>
-      </div>
-  
           </div>
-        
+        </div>
       )}
     </div>
   );

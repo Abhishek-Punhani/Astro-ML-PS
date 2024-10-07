@@ -2,18 +2,18 @@ import re
 import bcrypt
 from email_validator import validate_email, EmailNotValidError
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 from models.user import User as users
 from db import get_auth_db
 
 
 async def create_user(userData):
-    db = get_auth_db()
+    db: Session = get_auth_db()
     try:
         username = userData.get("username")
         email = userData.get("email")
         password = userData.get("password")
         auth_id = userData.get("authId")
-
         # Check if fields are empty
         if not username or not email:
             return {"error": "Please fill all fields."}
@@ -32,6 +32,7 @@ async def create_user(userData):
 
         # Check if user already exists
         existing_user = db.query(users).filter_by(email=email).first()
+        print(existing_user)
         if existing_user:
             return {
                 "error": "This email already exists. Please try with a different email."
@@ -49,7 +50,11 @@ async def create_user(userData):
                 "error": "Please ensure your password is between 6 and 128 characters."
             }
 
-        if password and not auth_id and not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).+$", password):
+        if (
+            password
+            and not auth_id
+            and not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).+$", password)
+        ):
             return {
                 "error": "Password must contain at least one uppercase letter, one lowercase letter, and one special character."
             }
@@ -64,7 +69,7 @@ async def create_user(userData):
 
         db.add(new_user)
         db.commit()
-
+        print(new_user.email)
         return new_user
 
     except IntegrityError:
@@ -72,5 +77,3 @@ async def create_user(userData):
         return {"error": "Database error. Please try again."}
     except Exception as e:
         return {"error": str(e)}
-    finally:
-        db.close()

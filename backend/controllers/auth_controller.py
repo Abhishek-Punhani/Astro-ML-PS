@@ -7,15 +7,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 import bcrypt
 import jwt
-from db import get_auth_db,get_otp_db,get_data_db
+from db import get_auth_db, get_otp_db, get_data_db
 from models.user import User as users
 from models.otp import OTP
 from models.peakResult import PeakResult
 from emails.verification import send_verification_email
 from emails.forgotpass import send_reset_password_email
 from utils.validation import create_user
-
-
 
 
 async def register():
@@ -31,9 +29,8 @@ async def register():
             return jsonify({"error": "Missing required fields."}), 400
 
         new_user = await create_user(data)
-        if new_user is None:
-            return jsonify({"error": "User creation failed."}), 500
-
+        if isinstance(new_user, dict) and "error" in new_user:
+            return jsonify({"error": new_user["error"]}), 500
 
         token = jwt.encode(
             {
@@ -42,9 +39,7 @@ async def register():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode(
-            "utf-8"
-        )  # Convert token to UTF-8
+        ).decode("utf-8")
 
         rtoken = jwt.encode(
             {
@@ -108,7 +103,7 @@ async def register():
 def login():
     try:
         otp_db = get_otp_db()
-        auth_db=get_auth_db()
+        auth_db = get_auth_db()
         data = request.get_json()
         if not data or "email" not in data or "password" not in data:
             return jsonify({"error": "Missing required fields."}), 400
@@ -136,7 +131,7 @@ def login():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         rtoken = jwt.encode(
             {
@@ -145,7 +140,7 @@ def login():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)
@@ -240,6 +235,7 @@ def refresh_token():
     finally:
         auth_db.close()
 
+
 def logout():
     try:
         response = make_response(jsonify({"message": "Logged out successfully."}))
@@ -253,7 +249,7 @@ def logout():
 async def google_login():
     try:
         otp_db = get_otp_db()
-        auth_db=get_auth_db()
+        auth_db = get_auth_db()
         data = request.get_json()
 
         # Extracting necessary parameters from the request body
@@ -345,8 +341,8 @@ async def google_login():
 def verifyOtp():
     try:
         otp_db = get_otp_db()
-        auth_db=get_auth_db()
-        data_db=get_data_db()
+        auth_db = get_auth_db()
+        data_db = get_data_db()
         data = request.get_json()
 
         # Check if OTP and token are provided
@@ -401,8 +397,12 @@ def verifyOtp():
         print(user.peak_result_ids)
 
         # Retrieve PeakResult objects for the user's peak_result_ids
-        peak_results = data_db.query(PeakResult).filter(PeakResult.id.in_(user.peak_result_ids)).all()
-        
+        peak_results = (
+            data_db.query(PeakResult)
+            .filter(PeakResult.id.in_(user.peak_result_ids))
+            .all()
+        )
+
         # Generate project names as an array of objects with id and project_name
         project_names = [
             {"id": str(result.id), "project_name": result.project_name}
@@ -495,7 +495,7 @@ def sendOtp():
         send_reset_password_email(user.username, user.email, link)
         # Respond with a success message and the token
         return jsonify({"message": "Link sent successfully."}), 200
-    
+
     except IntegrityError:
         auth_db.rollback()
         return jsonify({"error": "An error occurred. Please try again."}), 500
@@ -503,7 +503,7 @@ def sendOtp():
     except Exception as e:
         print(f"Error in /auth/login: {e}")
         return jsonify({"error": "Internal server error"}), 500
-    
+
     finally:
         auth_db.close()
 
@@ -546,7 +546,7 @@ def forgot_password():
         user.password = hashed_new_password
         auth_db.commit()
         return jsonify({"message": "Password changed successfully."}), 200
-    
+
     except IntegrityError:
         auth_db.rollback()
         return jsonify({"error": "An error occurred. Please try again."}), 500
@@ -554,7 +554,7 @@ def forgot_password():
     except Exception as e:
         print(f"Error in /auth/login: {e}")
         return jsonify({"error": "Internal server error"}), 500
-    
+
     finally:
         auth_db.close()
 
@@ -562,7 +562,7 @@ def forgot_password():
 def resendOtp():
     try:
         auth_db = get_auth_db()
-        otp_db=get_otp_db()
+        otp_db = get_otp_db()
         data = request.get_json()
         print(data)
         if not data or "ref_token" not in data:
@@ -648,7 +648,7 @@ def resendOtp():
         auth_db.rollback()
         otp_db.rollback()
         return jsonify({"error": "An error occurred. Please try again."}), 500
-    
+
     except Exception:
         return jsonify({"error": "Internal server error"}), 500
     finally:
@@ -761,7 +761,7 @@ async def githubCallback():
             ),
             200,
         )
-    
+
     except IntegrityError:
         auth_db.rollback()
         otp_db.rollback()
