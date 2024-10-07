@@ -5,7 +5,7 @@ from controllers.user_controller import (
     resendOtp,
     analyze,
     save,
-    getData
+    getData,
 )
 
 user_blueprint = Blueprint("user", __name__)

@@ -8,7 +8,7 @@ from db import get_auth_db
 
 
 async def create_user(userData):
-    db :Session= get_auth_db()
+    db: Session = get_auth_db()
     try:
         username = userData.get("username")
         email = userData.get("email")
@@ -30,8 +30,6 @@ async def create_user(userData):
         except EmailNotValidError:
             return {"error": "Please provide a valid email address."}
 
-
-       
         # Check if user already exists
         existing_user = db.query(users).filter_by(email=email).first()
         print(existing_user)
@@ -52,7 +50,11 @@ async def create_user(userData):
                 "error": "Please ensure your password is between 6 and 128 characters."
             }
 
-        if password and not auth_id and not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).+$", password):
+        if (
+            password
+            and not auth_id
+            and not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).+$", password)
+        ):
             return {
                 "error": "Password must contain at least one uppercase letter, one lowercase letter, and one special character."
             }
@@ -69,7 +71,6 @@ async def create_user(userData):
         db.commit()
         print(new_user.email)
         return new_user
-
 
     except IntegrityError:
         db.rollback()

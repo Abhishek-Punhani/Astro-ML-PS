@@ -51,7 +51,18 @@ const Sidebar = ({ SidebarStatus }: SidebarProps) => {
       }
     });
 
-    const plotData = [X, Y, MF, TOC, leftx, lefty, rightx, righty] as any[];
+    const plotData = [
+      X,
+      Y,
+      MF,
+      TOC,
+      leftx,
+      lefty,
+      rightx,
+      righty,
+      left,
+      right,
+    ] as any[];
     setData(plotData);
     navigate(`history/${id}`);
   };

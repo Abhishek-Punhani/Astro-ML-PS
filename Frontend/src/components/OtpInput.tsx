@@ -7,9 +7,19 @@ const OTPForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [timer, setTimer] = useState<number>(60); // Added timer state
   const { verify, resendOtp, reftoken } = useAuth();
   const { vtoken } = useParams<{ vtoken: string }>();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => {
+        setTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -150,11 +160,16 @@ const OTPForm: React.FC = () => {
                 <div className="text-sm text-slate-500 mt-6">
                   Didn't receive code?{" "}
                   <button
-                    className="font-medium text-white hover:underline"
+                    className={`font-medium text-white ${timer == 0 && "hover:underline"}`}
                     type="button"
-                    onClick={(e) => handleresend(e)}>
+                    onClick={(e) => {
+                      handleresend(e);
+                      setTimer(60); // Reset the timer when OTP is resent
+                    }}
+                    disabled={loading || timer > 0}>
                     Resend
                   </button>
+                  {timer > 0 && ` After ${timer} seconds`}
                 </div>
               </div>
             </div>
