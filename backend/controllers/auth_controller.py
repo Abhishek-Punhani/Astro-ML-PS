@@ -31,10 +31,10 @@ async def register():
             return jsonify({"error": "Missing required fields."}), 400
 
         new_user = await create_user(data)
-        if new_user is None:
-            return jsonify({"error": "User creation failed."}), 500
+        if isinstance(new_user, dict) and "error" in new_user:
+            return jsonify({"error": new_user["error"]}), 500
 
-
+        
         token = jwt.encode(
             {
                 "email": new_user.email,
@@ -42,9 +42,7 @@ async def register():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode(
-            "utf-8"
-        )  # Convert token to UTF-8
+        ).decode("utf-8")
 
         rtoken = jwt.encode(
             {
@@ -136,7 +134,7 @@ def login():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         rtoken = jwt.encode(
             {
@@ -145,7 +143,7 @@ def login():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)

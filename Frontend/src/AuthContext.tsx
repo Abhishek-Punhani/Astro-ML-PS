@@ -249,7 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     token: string
   ) => {
     console.log(current_password, new_password, token);
-    const response = await fetch("http://localhost:8080/auth/change-password", {
+    const response = await fetch("http://localhost:5000/user/change-password", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -273,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const verifyUserOtp = async (otp: number, rtoken: string, token: string) => {
     const response = await fetch(
-      "http://localhost:8080/auth/verify-change-password",
+      "http://localhost:5000/user/verify-change-password",
       {
         method: "POST",
         credentials: "include",
@@ -315,7 +315,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const resendOtp = async (ref_token: string) => {
     if (user?.token) {
       const response = await fetch(
-        "http://localhost:8080/auth/resend-change-otp",
+        "http://localhost:5000/user/resend-change-otp",
         {
           method: "POST",
           credentials: "include",
