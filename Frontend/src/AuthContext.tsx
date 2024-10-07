@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [reftoken, SetReftoken] = useState<string | null>(null);
   const [access, setAccess] = useState<"link" | "reset" | null>(null);
   const [data, setData] = useState<any>(null);
-
+  const auth_uri = import.meta.env.REACT_APP_AUTH_SERVER as string;
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -114,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch("http://localhost:8080/auth/login", {
+    const response = await fetch(`${auth_uri}/auth/login`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -136,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (user?.token) {
       return verifyUserOtp(otp, token, user.token);
     }
-    const response = await fetch("http://localhost:8080/auth/verify-otp", {
+    const response = await fetch(`${auth_uri}/auth/verify-otp`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -162,7 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     email: string,
     password: string
   ) => {
-    const response = await fetch("http://localhost:8080/auth/register", {
+    const response = await fetch(`${auth_uri}/auth/register`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -185,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     username: string,
     authId: string
   ) => {
-    const response = await fetch("http://localhost:8080/auth/google-login", {
+    const response = await fetch(`${auth_uri}/auth/google-login`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -204,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const sendOtp = async (email: string) => {
-    const response = await fetch("http://localhost:8080/auth/send-otp", {
+    const response = await fetch(`${auth_uri}/auth/send-otp`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -229,7 +229,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const forgotPassword = async (token: string, password: string) => {
-    const response = await fetch("http://localhost:8080/auth/forgot-password", {
+    const response = await fetch(`${auth_uri}/auth/forgot-password`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -338,7 +338,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Something Went Wrong !");
       }
     }
-    const response = await fetch("http://localhost:8080/auth/resend-otp", {
+    const response = await fetch(`${auth_uri}/auth/resend-otp`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -355,7 +355,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const githubLogin = async (code: string) => {
-    const response = await fetch("http://localhost:8080/auth/github/callback", {
+    const response = await fetch(`${auth_uri}/auth/github/callback`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
