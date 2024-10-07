@@ -1,3 +1,4 @@
+python==3.8.*
 Flask
 Flask-Cors
 Flask-Session
@@ -14,3 +15,4 @@ requests
 email-validator
 gunicorn
 redis
+psycopg2
