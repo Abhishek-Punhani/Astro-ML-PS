@@ -1,13 +1,10 @@
 import uuid
 from sqlalchemy import Column, Float, JSON, String
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import UUID
-
-# Create a Base class
-Base = declarative_base()
+from db import DataBase
 
 
-class PeakResult(Base):
+class PeakResult(DataBase):
     __tablename__ = "peak_results"
 
     id = Column(

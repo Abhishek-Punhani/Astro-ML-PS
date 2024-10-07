@@ -132,15 +132,18 @@ const Navbar = () => {
                   menuOpen ? "" : "hidden"
                 }`}
                 ref={sidebarRef}>
-                <Link
-                  to={path === "/settings" ? "/" : "/settings"}
-                  className="text-lg border-b p-4 hover:underline">
-                  Settings
-                </Link>
+                <div onClick={() => setMenuOpen(false)}>
+                  <Link
+                    to={path === "/settings" ? "/" : "/settings"}
+                    className="text-lg border-b p-4 hover:underline">
+                    Settings
+                  </Link>
+                </div>
                 <div
                   className="text-lg p-4 hover:underline cursor-pointer"
                   onClick={() => {
                     handleLogout();
+                    setMenuOpen(false);
                     setNavMenuOpen(false);
                   }}>
                   Logout

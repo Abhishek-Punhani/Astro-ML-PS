@@ -1,14 +1,12 @@
 import uuid
 from sqlalchemy import Column, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.mutable import MutableList
-
-# Create a Base class
-Base = declarative_base()
+from db import AuthBase
 
 
-class User(Base):
+
+class User(AuthBase):
     __tablename__ = "users"
 
     id = Column(

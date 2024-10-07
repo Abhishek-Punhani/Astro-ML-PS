@@ -19,6 +19,7 @@ Chart/
 # Backend specific
 backend/venv/
 backend/.venv/
+backend/flask_session
 .venv
 backend/__pycache__/
 backend/.env

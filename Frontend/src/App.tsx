@@ -38,10 +38,6 @@ const AppContent: React.FC = () => {
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route
-              path="/auth/github/callback"
-              element={token ? <Navigate to="/" /> : <GitHubCallback />}
-            />
-            <Route
               path="/analyser"
               element={token ? <Home /> : <LoginForm />}
             />
@@ -72,6 +68,10 @@ const AppContent: React.FC = () => {
             <Route
               path="/auth/mail-sent"
               element={access ? <MailSuccess /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/auth/github/callback"
+              element={token ? <Navigate to="/" /> : <GitHubCallback />}
             />
             <Route
               path="/settings/change-password"
