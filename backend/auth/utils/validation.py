@@ -82,7 +82,7 @@ async def create_user(userData):
             password
             and not auth_id
             and not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).+$", password)
-           ):
+        ):
             return {
                 "error": "Password must contain at least one uppercase letter, one lowercase letter, and one special character."
             }

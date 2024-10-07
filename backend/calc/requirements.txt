@@ -1,0 +1,16 @@
+Flask
+Flask-Cors
+Flask-Session
+SQLAlchemy
+bcrypt
+PyJWT
+python-dotenv
+numpy
+scipy
+pytest
+scikit-learn
+pylint
+requests
+email-validator
+gunicorn
+redis

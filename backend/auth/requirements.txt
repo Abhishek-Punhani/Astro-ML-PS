@@ -13,3 +13,4 @@ pylint
 requests
 email-validator
 gunicorn
+redis
