@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
+import { PulseLoader } from "react-spinners";
 const OTPForm: React.FC = () => {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
-  const [timer, setTimer] = useState<number>(60); // Added timer state
+  const [timer, setTimer] = useState<number>(60);
   const { verify, resendOtp, reftoken } = useAuth();
   const { vtoken } = useParams<{ vtoken: string }>();
   const navigate = useNavigate();
@@ -57,18 +58,23 @@ const OTPForm: React.FC = () => {
         inputsRef.current[index - 1]?.focus();
       }
     }
+    if (e.key === "Enter") {
+      const form = document.getElementById("otp-form") as HTMLFormElement;
+      form.requestSubmit(); // Submit the form
+    }
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").trim();
-    if (/^\d{4}$/.test(pastedData)) {
+
+    // If the pasted data is 6 digits, split across inputs
+    if (/^\d{6}$/.test(pastedData)) {
       const pastedOtp = pastedData.split("");
       setOtp(pastedOtp);
-      inputsRef.current[3]?.focus();
+      inputsRef.current[5]?.focus(); // Focus on the last input field after pasting
     }
   };
-
   const handleresend = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
@@ -152,15 +158,19 @@ const OTPForm: React.FC = () => {
                       type="submit"
                       disabled={loading}
                       className="w-full inline-flex justify-center whitespace-nowrap rounded-xl bg-transparent hover:bg-[rgb(0,0,0,0.4)] border px-4 py-3 text-lg font-medium text-white shadow-md shadow-indigo-950/10  transition-colors duration-150">
-                      Proceed
+                      {loading ? (
+                        <PulseLoader color="#9e9b9b" size={12} />
+                      ) : (
+                        "Proceed"
+                      )}
                     </button>
                   </div>
                 </form>
 
-                <div className="text-sm text-slate-500 mt-6">
+                <div className="text-sm text-slate-500 mt-6 mr-2">
                   Didn't receive code?{" "}
                   <button
-                    className={`font-medium text-white ${timer == 0 && "hover:underline"}`}
+                    className={`font-medium text-white ${timer > 0 || loading ? "text-gray-600" : "cursor-pointer hover:underline"}`}
                     type="button"
                     onClick={(e) => {
                       handleresend(e);
@@ -169,7 +179,10 @@ const OTPForm: React.FC = () => {
                     disabled={loading || timer > 0}>
                     Resend
                   </button>
-                  {timer > 0 && ` After ${timer} seconds`}
+                  <span className="ml-3 text-gray-300">
+                    {" "}
+                    {timer > 0 && ` After ${timer} seconds`}
+                  </span>
                 </div>
               </div>
             </div>

@@ -1,7 +1,6 @@
 import hashlib
 import json
 import os
-import bcrypt
 import numpy as np
 import random
 from flask import jsonify, request, g
@@ -16,6 +15,7 @@ from datetime import datetime, timezone, timedelta
 from emails.verification import send_verification_email
 from config_redis import data_redis_client, redis_client
 from utils.dict import peak_result_to_dict
+import bcrypt
 
 
 def convert_numpy_to_native(data):
@@ -632,7 +632,6 @@ def getData(id):
 
         return jsonify({"data": result.to_dict()}), 200
 
-
     except IntegrityError:
         if data_db:
             data_db.rollback()
@@ -641,7 +640,6 @@ def getData(id):
     except Exception as e:
         print(f"Exception: {e}")
         return jsonify({"error": "Internal server error."}), 500
-
 
     finally:
         if data_db:

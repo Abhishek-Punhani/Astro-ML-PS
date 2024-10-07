@@ -8,6 +8,7 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
 import { GithubLoginButton } from "react-social-login-buttons";
+import { PulseLoader } from "react-spinners";
 interface GoogleUser {
   username: string;
   email: string;
@@ -114,7 +115,7 @@ export const LoginForm: React.FC = () => {
               type="submit"
               className="w-full p-2 text-white border rounded hover:bg-[rgb(0,0,0,0.4)]"
               disabled={loading}>
-              {loading ? "Loading..." : "Login"}
+              {loading ? <PulseLoader color="#9e9b9b" size={12} /> : "Login"}
             </button>
           </form>
           {/* Google login button */}

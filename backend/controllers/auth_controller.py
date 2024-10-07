@@ -35,7 +35,6 @@ async def register():
         if isinstance(new_user, dict) and "error" in new_user:
             return jsonify({"error": new_user["error"]}), 500
 
-
         token = jwt.encode(
             {
                 "email": new_user["email"],
@@ -262,7 +261,6 @@ def refresh_token():
         return jsonify({"error": "Internal server error"}), 500
     finally:
         auth_db.close()
-
 
 
 def logout():

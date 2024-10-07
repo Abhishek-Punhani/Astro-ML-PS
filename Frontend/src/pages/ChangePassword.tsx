@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
+import { PulseLoader } from "react-spinners";
 
 const ChangePassword: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -118,7 +119,11 @@ const ChangePassword: React.FC = () => {
                 type="submit"
                 disabled={loading}
                 className="w-full text-white border hover:bg-rgb[(0,0,0,0.4)] bg-transparent font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                Reset Password
+                {loading ? (
+                  <PulseLoader color="#9e9b9b" size={12} />
+                ) : (
+                  " Reset Password"
+                )}
               </button>
             </form>
           </div>
