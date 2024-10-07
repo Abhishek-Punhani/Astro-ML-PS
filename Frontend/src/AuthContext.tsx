@@ -150,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem("user", JSON.stringify(data.user));
       SuccessfulToast("Login Successfull");
       setUser(data.user);
+      console.log(data.user);
     } else {
       FailedToast(data.error);
       throw new Error(data.error);

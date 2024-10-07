@@ -1,10 +1,23 @@
 import re
 import bcrypt
+import json
 from email_validator import validate_email, EmailNotValidError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from models.user import User as users
 from db import get_auth_db
+from config_redis import redis_client
+
+
+def user_to_dict(user):
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "password": user.password,
+        "username": user.username,
+        "isVerified": user.isVerified,
+        "peak_result_ids": [str(id) for id in user.peak_result_ids],
+    }
 
 
 async def create_user(userData):
@@ -30,9 +43,24 @@ async def create_user(userData):
         except EmailNotValidError:
             return {"error": "Please provide a valid email address."}
 
-        # Check if user already exists
-        existing_user = db.query(users).filter_by(email=email).first()
-        print(existing_user)
+        # Cache key for the user based on email
+        cache_key = f"user:{email}"
+
+        # Check if user data exists in Redis cache
+        cached_user = redis_client.get(cache_key)
+
+        if cached_user is not None:
+            existing_user = json.loads(cached_user)
+            if existing_user:
+                return {
+                    "error": "This email already exists. Please try with a different email."
+                }
+
+        else:
+            existing_user = db.query(users).filter_by(email=email).first()
+            if existing_user is not None:
+                user_dict = user_to_dict(existing_user)
+                redis_client.setex(cache_key, 84000, json.dumps(user_dict))
         if existing_user:
             return {
                 "error": "This email already exists. Please try with a different email."
@@ -69,8 +97,7 @@ async def create_user(userData):
 
         db.add(new_user)
         db.commit()
-        print(new_user.email)
-        return new_user
+        return user_to_dict(new_user)
 
     except IntegrityError:
         db.rollback()
