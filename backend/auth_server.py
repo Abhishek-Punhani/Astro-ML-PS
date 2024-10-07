@@ -3,7 +3,6 @@ from flask import Flask
 from flask_cors import CORS
 from flask_session import Session
 from routes.auth_routes import auth_blueprint
-from routes.user_routes import user_blueprint
 from config import Config
 from dotenv import load_dotenv
 
@@ -29,7 +28,6 @@ Session(app)
 
 # Register Blueprints
 app.register_blueprint(auth_blueprint, url_prefix="/auth")
-app.register_blueprint(user_blueprint, url_prefix="/user")
 
 
 # Error handling

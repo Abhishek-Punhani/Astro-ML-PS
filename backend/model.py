@@ -5,7 +5,6 @@ from sklearn.cluster import DBSCAN
 from sklearn.metrics import silhouette_score
 
 
-
 def fun(a):
     b = a.copy()
     for i in range(a.size):

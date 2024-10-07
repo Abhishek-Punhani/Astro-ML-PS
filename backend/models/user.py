@@ -7,6 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 # Create a Base class
 Base = declarative_base()
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -21,9 +22,11 @@ class User(Base):
     password = Column(String, nullable=False)
     username = Column(String, nullable=False)
     isVerified = Column("isVerified", Boolean, default=False, nullable=False)
-    
+
     # Use MutableList to track changes in the ARRAY field
-    peak_result_ids = Column(MutableList.as_mutable(ARRAY(UUID(as_uuid=True))), default=list, nullable=False)
+    peak_result_ids = Column(
+        MutableList.as_mutable(ARRAY(UUID(as_uuid=True))), default=list, nullable=False
+    )
 
     @property
     def id_utf8(self):
