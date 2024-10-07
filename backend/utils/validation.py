@@ -2,13 +2,12 @@ import re
 import bcrypt
 from email_validator import validate_email, EmailNotValidError
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
 from models.user import User as users
-from db import get_db
+from db import get_auth_db
 
 
 async def create_user(userData):
-    db: Session = get_db()
+    db = get_auth_db()
     try:
         username = userData.get("username")
         email = userData.get("email")
@@ -50,7 +49,7 @@ async def create_user(userData):
                 "error": "Please ensure your password is between 6 and 128 characters."
             }
 
-        if password and not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).+$", password):
+        if password and not auth_id and not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).+$", password):
             return {
                 "error": "Password must contain at least one uppercase letter, one lowercase letter, and one special character."
             }

@@ -1,0 +1,35 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/manav/gps_ws/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/manav/gps_ws/src/fast_gicp/include/**",
+        "/home/manav/catkin_ws/src/gazebo_demo/include/**",
+        "/home/manav/gps_ws/src/gps_common/include/**",
+        "/home/manav/gps_ws/src/hdl_graph_slam/include/**",
+        "/home/manav/gps_ws/src/joystick/include/**",
+        "/home/manav/catkin_ws/src/linefit_ground_segmentation/linefit_ground_segmentation/include/**",
+        "/home/manav/gps_ws/src/ndt_omp/include/**",
+        "/home/manav/gps_ws/src/ouster-ros/include/**",
+        "/home/manav/gps_ws/src/pure_pursuit/include/**",
+        "/home/manav/gps_ws/src/ublox_gps/include/**",
+        "/home/manav/gps_ws/src/ublox_msg_filters/include/**",
+        "/home/manav/gps_ws/src/ublox_msgs/include/**",
+        "/home/manav/gps_ws/src/ublox_serialization/include/**",
+        "/home/manav/gps_ws/src/unique_identifier-master/unique_id/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

@@ -1,14 +1,11 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import Column, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import UUID
-
-# Create a Base class
-Base = declarative_base()
+from db import OtpBase
 
 
-class OTP(Base):
+class OTP(OtpBase):
     __tablename__ = "otp"
 
     id = Column(
