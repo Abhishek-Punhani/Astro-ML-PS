@@ -1,7 +1,6 @@
 import hashlib
 import json
 import os
-import bcrypt
 import numpy as np
 import random
 from flask import jsonify, request, g
@@ -14,6 +13,9 @@ import jwt
 from model import returnable
 from datetime import datetime, timezone, timedelta
 from emails.verification import send_verification_email
+from config_redis import data_redis_client, redis_client
+from utils.dict import peak_result_to_dict
+import bcrypt
 
 
 def convert_numpy_to_native(data):
@@ -57,6 +59,8 @@ def convert_to_serializable(obj):
 
 
 def change_password():
+    otp_db = None
+    auth_db = None
     try:
         # Get the Authorization header and check for token
         auth_header = request.headers.get("authorization")
@@ -162,8 +166,10 @@ def change_password():
         )
 
     except IntegrityError:
-        auth_db.rollback()
-        otp_db.rollback()
+        if auth_db:
+            auth_db.rollback()
+        if otp_db:
+            otp_db.rollback()
         return jsonify({"error": "An error occurred. Please try again."}), 500
 
     except Exception as e:
@@ -171,8 +177,10 @@ def change_password():
         return jsonify({"error": "Internal server error"}), 500
 
     finally:
-        otp_db.close()
-        auth_db.close()
+        if otp_db:
+            otp_db.close()
+        if auth_db:
+            auth_db.close()
 
 
 def verifyOtp():
@@ -428,7 +436,6 @@ def analyze():
 
             # Convert to recarray
             rec_array = np.array(data_tuples, dtype=dtype).view(np.recarray)
-            print(rec_array)
 
             # Call the returnable function
             res = returnable(rec_array)
@@ -498,10 +505,12 @@ def save():
         if not user:
             return jsonify({"error": "User not found."}), 404
 
+        print(user)
         # Generate data hash
         data_hash = generate_data_hash(data)
         data_db = get_data_db()
         # Check if an existing result with the same data_hash exists
+
         existing_result = (
             data_db.query(PeakResult).filter(PeakResult.data_hash == data_hash).first()
         )
@@ -545,6 +554,27 @@ def save():
 
         project_name = {"id": new_result.id, "project_name": new_result.project_name}
 
+        redis_key = f"peak_result:{new_result.id}"
+        data_redis_client.setex(
+            redis_key, 86400, json.dumps(peak_result_to_dict(new_result))
+        )
+
+        cache_key = f"user:{user.email}"
+        redis_client.delete(cache_key)
+        peak_results_cache_key = f"peak_results:{user.id}"
+        data_redis_client.delete(peak_results_cache_key)
+
+        # Use a list comprehension to convert each peak result to a dictionary
+        peak_results = (
+            data_db.query(PeakResult)
+            .filter(PeakResult.id.in_(user.peak_result_ids))
+            .all()
+        )
+        new_peak_results = [peak_result_to_dict(result) for result in peak_results]
+        # Cache the peak results
+        data_redis_client.setex(
+            peak_results_cache_key, 84000, json.dumps(new_peak_results)
+        )
         return (
             jsonify(
                 {"message": "Data saved successfully", "project_name": project_name}
@@ -567,6 +597,7 @@ def save():
 
 
 def getData(id):
+    data_db = None
     try:
         # Get the Authorization header and check for token
         auth_header = request.headers.get("authorization")
@@ -585,15 +616,25 @@ def getData(id):
         if not id:
             return jsonify({"error": "Missing required fields."}), 400
 
+        # Check Redis for cached data
+        redis_key = f"peak_result:{id}"
+        cached_result = data_redis_client.get(redis_key)
+
+        if cached_result:
+            return jsonify({"data": json.loads(cached_result)}), 200
+
         data_db = get_data_db()
         result = data_db.query(PeakResult).filter(PeakResult.id == id).first()
         if not result:
             return jsonify({"error": "Data not found."}), 404
 
+        data_redis_client.setex(redis_key, 86400, json.dumps(result.to_dict()))
+
         return jsonify({"data": result.to_dict()}), 200
 
     except IntegrityError:
-        data_db.rollback()
+        if data_db:
+            data_db.rollback()
         return jsonify({"error": "Something Went Wrong!"}), 500
 
     except Exception as e:
@@ -601,4 +642,5 @@ def getData(id):
         return jsonify({"error": "Internal server error."}), 500
 
     finally:
-        data_db.close()
+        if data_db:
+            data_db.close()

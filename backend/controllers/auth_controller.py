@@ -1,5 +1,6 @@
 import os
 import random
+import json
 from datetime import datetime, timezone, timedelta
 from flask import jsonify, request, make_response
 import requests
@@ -14,6 +15,8 @@ from models.peakResult import PeakResult
 from emails.verification import send_verification_email
 from emails.forgotpass import send_reset_password_email
 from utils.validation import create_user
+from utils.dict import peak_result_to_dict, user_to_dict
+from config_redis import redis_client, data_redis_client
 
 
 async def register():
@@ -34,7 +37,7 @@ async def register():
 
         token = jwt.encode(
             {
-                "email": new_user.email,
+                "email": new_user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(seconds=330),
             },
             os.getenv("AUTH_SECRET"),
@@ -43,7 +46,7 @@ async def register():
 
         rtoken = jwt.encode(
             {
-                "email": new_user.email,
+                "email": new_user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=20),
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
@@ -61,7 +64,9 @@ async def register():
         otp_db.query(OTP).filter(OTP.created_at < expiry_time).delete()
 
         # Check if an OTP entry already exists for this email and delete it
-        existing_entry = otp_db.query(OTP).filter(OTP.email == new_user.email).first()
+        existing_entry = (
+            otp_db.query(OTP).filter(OTP.email == new_user["email"]).first()
+        )
         if existing_entry:
             otp_db.delete(existing_entry)
             otp_db.commit()
@@ -69,14 +74,14 @@ async def register():
         # Create and save the new OTP entry with the modified OTP
         new_otp_entry = OTP(
             otp=otp_with_token,
-            email=new_user.email,
+            email=new_user["email"],
             created_at=datetime.now(timezone.utc),
         )
         otp_db.add(new_otp_entry)
         otp_db.commit()
 
         # Send verification email (implement this function)
-        send_verification_email(new_user.username, new_user.email, otp)
+        send_verification_email(new_user["username"], new_user["email"], otp)
 
         # Respond with a success message and the token
         return (
@@ -110,37 +115,57 @@ def login():
         email = data["email"]
         password = data["password"]
 
-        # Check for user credentials
-        try:
-            user = auth_db.query(users).filter(users.email == email).first()
-        except SQLAlchemyError as e:
-            print("Database error occurred:", e)
-            return jsonify({"error": "An error occurred. Please try again."}), 500
-        finally:
-            auth_db.close()
+        # Cache key for the user based on email
+        cache_key = f"user:{email}"
+
+        # Check if user data exists in Redis cache
+        cached_user = redis_client.get(cache_key)
+
+        if cached_user is not None:
+            user = json.loads(cached_user)
+        else:
+
+            try:
+                user = auth_db.query(users).filter(users.email == email).first()
+                if user is None:
+                    return (
+                        jsonify(
+                            {
+                                "error": "User Dosnt exist Please register yourself or sign in via Google or Github"
+                            }
+                        ),
+                        401,
+                    )
+                user = user_to_dict(user)
+                redis_client.setex(cache_key, 84000, json.dumps(user))
+            except SQLAlchemyError as e:
+                print("Database error occurred:", e)
+                return jsonify({"error": "An error occurred. Please try again."}), 500
+            finally:
+                auth_db.close()
+
         if not user or not bcrypt.checkpw(
-            password.encode("utf-8"), user.password.encode("utf-8")
+            password.encode("utf-8"), user["password"].encode("utf-8")
         ):
             return jsonify({"error": "Invalid credentials"}), 401
-
         # Generate a unique token from email ID with 1-sec expiration
         token = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(seconds=330),
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        )
+        ).decode("utf-8")
 
         rtoken = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=20),
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        )
+        ).decode("utf-8")
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)
@@ -153,20 +178,22 @@ def login():
         otp_db.query(OTP).filter(OTP.created_at < expiry_time).delete()
 
         # Check if an OTP entry already exists for this email and delete it
-        existing_entry = otp_db.query(OTP).filter(OTP.email == user.email).first()
+        existing_entry = otp_db.query(OTP).filter(OTP.email == user["email"]).first()
         if existing_entry:
             otp_db.delete(existing_entry)
             otp_db.commit()
 
         # Create and save the new OTP entry with the modified OTP
         new_otp_entry = OTP(
-            otp=otp_with_token, email=user.email, created_at=datetime.now(timezone.utc)
+            otp=otp_with_token,
+            email=user["email"],
+            created_at=datetime.now(timezone.utc),
         )
         otp_db.add(new_otp_entry)
         otp_db.commit()
 
         # Send verification email (implement this function)
-        send_verification_email(user.username, user.email, otp)
+        send_verification_email(user["username"], user["email"], otp)
 
         # Respond with a success message and the token
         return (
@@ -261,8 +288,19 @@ async def google_login():
         if not all([email, username, authId]):
             return jsonify({"error": "Missing required fields."}), 400
 
-        # Check if the user already exists using email
-        existing_user = auth_db.query(users).filter(users.email == email).first()
+        # Cache key for the user based on email
+        cache_key = f"user:{email}"
+
+        # Check if user data exists in Redis cache
+        cached_user = redis_client.get(cache_key)
+        if cached_user is not None:
+            existing_user = json.loads(cached_user)
+        else:
+            # Check if the user already exists using email
+            existing_user = auth_db.query(users).filter(users.email == email).first()
+            if existing_user is not None:
+                existing_user = user_to_dict(existing_user)
+                redis_client.setex(cache_key, 84000, json.dumps(existing_user))
 
         if not existing_user:
             try:
@@ -270,13 +308,14 @@ async def google_login():
             except Exception as e:
                 print(e)
                 return jsonify({"error": "Internal server error"}), 500
+
         else:
             user = existing_user
 
         # Generate a unique token from email ID with 1-sec expiration
         token = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(seconds=330),
             },
             os.getenv("AUTH_SECRET"),
@@ -285,7 +324,7 @@ async def google_login():
 
         rtoken = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=20),
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
@@ -303,20 +342,22 @@ async def google_login():
         otp_db.query(OTP).filter(OTP.created_at < expiry_time).delete()
 
         # Check if an OTP entry already exists for this email and delete it
-        existing_entry = otp_db.query(OTP).filter(OTP.email == user.email).first()
+        existing_entry = otp_db.query(OTP).filter(OTP.email == user["email"]).first()
         if existing_entry:
             otp_db.delete(existing_entry)
             otp_db.commit()
 
         # Create and save the new OTP entry with the modified OTP
         new_otp_entry = OTP(
-            otp=otp_with_token, email=user.email, created_at=datetime.now(timezone.utc)
+            otp=otp_with_token,
+            email=user["email"],
+            created_at=datetime.now(timezone.utc),
         )
         otp_db.add(new_otp_entry)
         otp_db.commit()
 
         # Send verification email (implement this function)
-        send_verification_email(user.username, user.email, otp)
+        send_verification_email(user["username"], user["email"], otp)
 
         # Respond with a success message and the token
         return (
@@ -389,32 +430,57 @@ def verifyOtp():
         otp_db.delete(otp_entry)
         otp_db.commit()
 
-        # Retrieve the user associated with the email
-        user = auth_db.query(users).filter(users.email == email).first()
-        if not user:
-            return jsonify({"error": "User not found."}), 404
+        # Cache key for the user based on email
+        cache_key = f"user:{email}"
 
-        print(user.peak_result_ids)
+        # Check if user data exists in Redis cache
+        cached_user = redis_client.get(cache_key)
 
-        # Retrieve PeakResult objects for the user's peak_result_ids
-        peak_results = (
-            data_db.query(PeakResult)
-            .filter(PeakResult.id.in_(user.peak_result_ids))
-            .all()
-        )
+        if cached_user is not None:
+            user = json.loads(cached_user)
+        else:
+            # Retrieve the user associated with the email
+            user = auth_db.query(users).filter(users.email == email).first()
+            if not user:
+                return jsonify({"error": "User not found."}), 404
+            user = user_to_dict(user)
+            redis_client.setex(cache_key, 84000, json.dumps(user))
+
+        # Cache key for peak results
+        user_id = user["id"]
+        peak_results_cache_key = f"peak_results:{user_id}"
+
+        # Check if peak results exist in Redis cache
+        cached_peak_results = data_redis_client.get(peak_results_cache_key)
+
+        if cached_peak_results is not None:
+            peak_results = json.loads(cached_peak_results)
+        else:
+            # Retrieve PeakResult objects for the user's peak_result_ids
+            peak_results = (
+                data_db.query(PeakResult)
+                .filter(PeakResult.id.in_(user["peak_result_ids"]))
+                .all()
+            )
+            # Convert PeakResult objects to dictionaries
+            peak_results = [peak_result_to_dict(result) for result in peak_results]
+            # Cache the peak results
+            data_redis_client.setex(
+                peak_results_cache_key, 84000, json.dumps(peak_results)
+            )
 
         # Generate project names as an array of objects with id and project_name
         project_names = [
-            {"id": str(result.id), "project_name": result.project_name}
+            {"id": str(result["id"]), "project_name": result["project_name"]}
             for result in peak_results
         ]
 
         # Generate JWT tokens
         access_token = jwt.encode(
-            {"userId": str(user.id)}, os.getenv("AUTH_SECRET"), algorithm="HS256"
+            {"userId": str(user["id"])}, os.getenv("AUTH_SECRET"), algorithm="HS256"
         )
         refresh_token = jwt.encode(
-            {"userId": str(user.id)},
+            {"userId": str(user["id"])},
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
         )
@@ -435,9 +501,9 @@ def verifyOtp():
         response_data = {
             "message": "Login success.",
             "user": {
-                "id": str(user.id),
-                "username": user.username,
-                "email": user.email,
+                "id": str(user["id"]),
+                "username": user["username"],
+                "email": user["email"],
                 "token": access_token_str,
                 "project_names": project_names,
             },
@@ -475,24 +541,39 @@ def sendOtp():
         auth_db = get_auth_db()
         data = request.get_json()
         email = data["email"]
-
+        if not email:
+            return jsonify({"error": "Missing Fields"}), 500
         # Check for user credentials
-        user = auth_db.query(users).filter(users.email == email).first()
+        # Cache key for the user based on email
+        cache_key = f"user:{email}"
+
+        # Check if user data exists in Redis cache
+        cached_user = redis_client.get(cache_key)
+
+        if cached_user is not None:
+            user = json.loads(cached_user)
+        else:
+            user = auth_db.query(users).filter(users.email == email).first()
+            if user is not None:
+                user = user_to_dict(user)
+                redis_client.setex(cache_key, 84000, json.dumps(user))
+            else:
+                return jsonify({"error": "User Not Found!"}), 500
         if not user:
             return jsonify({"error": "Invalid credentials"}), 401
 
         # Generate a unique token from email ID with 1-sec expiration
         token = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
         ).decode("utf-8")
         clientapi = os.getenv("CLIENT_URI")
-        link = clientapi + "/auth/newcredentials/" + str(user.id) + "/" + token
-        send_reset_password_email(user.username, user.email, link)
+        link = clientapi + "/auth/newcredentials/" + str(user["id"]) + "/" + token
+        send_reset_password_email(user["username"], user["email"], link)
         # Respond with a success message and the token
         return jsonify({"message": "Link sent successfully."}), 200
 
@@ -514,7 +595,8 @@ def forgot_password():
         data = request.get_json()
         token = data["token"]
         new_password = data["password"]
-        print(data)
+        if not token and new_password:
+            return jsonify({"error": "Missing Fields."}), 400
         try:
             check = jwt.decode(token, os.getenv("AUTH_SECRET"), algorithms=["HS256"])
             print(check)
@@ -523,7 +605,21 @@ def forgot_password():
 
         email = check["email"]
         # Fetch the user from the database
-        user = auth_db.query(users).filter(users.email == email).first()
+        # Cache key for the user based on email
+        cache_key = f"user:{email}"
+
+        # Check if user data exists in Redis cache
+        cached_user = redis_client.get(cache_key)
+
+        if cached_user is not None:
+            user = json.loads(cached_user)
+        else:
+            user = auth_db.query(users).filter(users.email == email).first()
+            if user is not None:
+                user = user_to_dict(user)
+                redis_client.setex(cache_key, 84000, json.dumps(user))
+            else:
+                return jsonify({"error": "User Not Found!"}), 500
         if not user:
             return jsonify({"error": "User not found."}), 404
 
@@ -532,7 +628,7 @@ def forgot_password():
             new_password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
 
-        if user.password == hashed_new_password:
+        if user["password"] == hashed_new_password:
             return (
                 jsonify(
                     {
@@ -543,7 +639,7 @@ def forgot_password():
             )
 
         # Update the user's password in the database
-        user.password = hashed_new_password
+        user["password"] = hashed_new_password
         auth_db.commit()
         return jsonify({"message": "Password changed successfully."}), 200
 
@@ -587,14 +683,28 @@ def resendOtp():
                 ),
                 400,
             )
+        email = check["email"]
+        # Cache key for the user based on email
+        cache_key = f"user:{email}"
 
-        user = auth_db.query(users).filter(users.email == check["email"]).first()
+        # Check if user data exists in Redis cache
+        cached_user = redis_client.get(cache_key)
+
+        if cached_user is not None:
+            user = json.loads(cached_user)
+        else:
+            user = auth_db.query(users).filter(users.email == email).first()
+            if user is not None:
+                user = user_to_dict(user)
+                redis_client.setex(cache_key, 84000, json.dumps(user))
+            else:
+                return jsonify({"error": "User Not Found!"}), 500
         if not user:
             return jsonify({"error": "User not found."}), 404
 
         token = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(seconds=330),
             },
             os.getenv("AUTH_SECRET"),
@@ -603,7 +713,7 @@ def resendOtp():
 
         rtoken = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=20),
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
@@ -621,20 +731,22 @@ def resendOtp():
         otp_db.query(OTP).filter(OTP.created_at < expiry_time).delete()
 
         # Check if an OTP entry already exists for this email and delete it
-        existing_entry = otp_db.query(OTP).filter(OTP.email == user.email).first()
+        existing_entry = otp_db.query(OTP).filter(OTP.email == user["email"]).first()
         if existing_entry:
             otp_db.delete(existing_entry)
             otp_db.commit()
 
         # Create and save the new OTP entry with the modified OTP
         new_otp_entry = OTP(
-            otp=otp_with_token, email=user.email, created_at=datetime.now(timezone.utc)
+            otp=otp_with_token,
+            email=user["email"],
+            created_at=datetime.now(timezone.utc),
         )
         otp_db.add(new_otp_entry)
         otp_db.commit()
 
         # Send verification email (implement this function)
-        send_verification_email(user.username, user.email, otp)
+        send_verification_email(user["username"], user["email"], otp)
 
         # Respond with a success message and the token
         return (
@@ -696,8 +808,19 @@ async def githubCallback():
         if not all([email, username, authId]):
             return jsonify({"error": "Missing required fields."}), 400
         auth_db = get_auth_db()
-        # Check if the user already exists using email
-        existing_user = auth_db.query(users).filter(users.email == email).first()
+        # Cache key for the user based on email
+        cache_key = f"user:{email}"
+
+        # Check if user data exists in Redis cache
+        cached_user = redis_client.get(cache_key)
+        if cached_user is not None:
+            existing_user = json.loads(cached_user)
+        else:
+            # Check if the user already exists using email
+            existing_user = auth_db.query(users).filter(users.email == email).first()
+            if existing_user is not None:
+                existing_user = user_to_dict(existing_user)
+                redis_client.setex(cache_key, 84000, json.dumps(existing_user))
 
         if not existing_user:
             try:
@@ -707,12 +830,13 @@ async def githubCallback():
                 return jsonify({"error": "Internal server error"}), 500
         else:
             user = existing_user
+
         otp_db = get_otp_db()
 
         # Generate a unique token from email ID with 1-sec expiration
         token = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(seconds=330),
             },
             os.getenv("AUTH_SECRET"),
@@ -721,7 +845,7 @@ async def githubCallback():
 
         rtoken = jwt.encode(
             {
-                "email": user.email,
+                "email": user["email"],
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=20),
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
@@ -739,20 +863,22 @@ async def githubCallback():
         otp_db.query(OTP).filter(OTP.created_at < expiry_time).delete()
 
         # Check if an OTP entry already exists for this email and delete it
-        existing_entry = otp_db.query(OTP).filter(OTP.email == user.email).first()
+        existing_entry = otp_db.query(OTP).filter(OTP.email == user["email"]).first()
         if existing_entry:
             otp_db.delete(existing_entry)
             otp_db.commit()
 
         # Create and save the new OTP entry with the modified OTP
         new_otp_entry = OTP(
-            otp=otp_with_token, email=user.email, created_at=datetime.now(timezone.utc)
+            otp=otp_with_token,
+            email=user["email"],
+            created_at=datetime.now(timezone.utc),
         )
         otp_db.add(new_otp_entry)
         otp_db.commit()
 
         # Send verification email (implement this function)
-        send_verification_email(user.username, user.email, otp)
+        send_verification_email(user["username"], user["email"], otp)
 
         # Respond with a success message and the token
         return (

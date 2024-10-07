@@ -7,6 +7,7 @@ import { useAuth } from "../AuthContext"; // Import the AuthContext
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { Link } from "react-router-dom";
+import { PulseLoader } from "react-spinners";
 interface GoogleUser {
   username: string;
   email: string;
@@ -46,6 +47,7 @@ export const RegisterForm = () => {
   };
 
   const onSubmit = async (data: any) => {
+    setLoading(true);
     setError(null);
     try {
       const vtoken = await registerUser(
@@ -54,6 +56,7 @@ export const RegisterForm = () => {
         data.password
       );
       navigate(`/auth/verify/${vtoken}`);
+      setLoading(false);
     } catch (error: any) {
       setError(error.message || "Registration failed.");
     }
@@ -112,7 +115,7 @@ export const RegisterForm = () => {
               type="submit"
               className="w-full hover:bg-[rgb(0,0,0,0.4)] bg-transparent border text-white p-2 rounded"
               disabled={isSubmitting}>
-              {loading ? "Loading..." : "Register"}
+              {loading ? <PulseLoader color="#9e9b9b" size={12} /> : "Register"}
             </button>
           </form>
           {error && (
