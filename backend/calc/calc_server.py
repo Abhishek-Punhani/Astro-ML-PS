@@ -18,7 +18,7 @@ cors_options = {
     "origins": [os.getenv("CLIENT_URI")],
 }
 
-CORS(app, supports_credentials=True)
+CORS(app, **cors_options)
 
 # Load configuration
 app.config.from_object(Config)

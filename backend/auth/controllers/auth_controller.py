@@ -156,7 +156,7 @@ def login():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         rtoken = jwt.encode(
             {
@@ -165,7 +165,7 @@ def login():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)

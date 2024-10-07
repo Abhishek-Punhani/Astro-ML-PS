@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_session import Session
 from routes.auth_routes import auth_blueprint
@@ -13,12 +13,13 @@ app = Flask(__name__)
 print("CLIENT_URI:", os.getenv("CLIENT_URI"))
 
 
+
 cors_options = {
     "supports_credentials": True,
     "origins": [os.getenv("CLIENT_URI")],
 }
 
-CORS(app, supports_credentials=True)
+CORS(app)
 
 # Load configuration
 app.config.from_object(Config)
@@ -32,12 +33,12 @@ app.register_blueprint(auth_blueprint, url_prefix="/auth")
 
 # Error handling
 @app.errorhandler(404)
-def not_found_error():
+def not_found_error(error):
     return {"error": {"status": 404, "message": "Page Not Found!"}}, 404
 
 
 @app.errorhandler(500)
-def internal_server_error():
+def internal_server_error(error):
     return {"error": {"status": 500, "message": "Internal Server Error!"}}, 500
 
 
