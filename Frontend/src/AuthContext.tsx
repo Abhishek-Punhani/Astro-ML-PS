@@ -69,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [access, setAccess] = useState<"link" | "reset" | null>(null);
   const [data, setData] = useState<any>(null);
   const auth_uri = import.meta.env.REACT_APP_AUTH_SERVER as string;
+  const calc_uri = import.meta.env.REACT_APP_CALC_SERVER as string;
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -250,7 +251,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     token: string
   ) => {
     console.log(current_password, new_password, token);
-    const response = await fetch("http://localhost:5000/user/change-password", {
+    const response = await fetch(`${calc_uri}/user/change-password`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -274,7 +275,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const verifyUserOtp = async (otp: number, rtoken: string, token: string) => {
     const response = await fetch(
-      "http://localhost:5000/user/verify-change-password",
+      `${calc_uri}/user/verify-change-password`,
       {
         method: "POST",
         credentials: "include",
@@ -296,7 +297,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const analyze = async (data: any, token: string) => {
-    const response = await fetch("http://localhost:5000/user/analyze", {
+    const response = await fetch(`${calc_uri}/user/analyze`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -316,7 +317,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const resendOtp = async (ref_token: string) => {
     if (user?.token) {
       const response = await fetch(
-        "http://localhost:5000/user/resend-change-otp",
+        `${calc_uri}/user/resend-change-otp`,
         {
           method: "POST",
           credentials: "include",
@@ -374,7 +375,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const saveResult = async (data: any, token: string) => {
-    const response = await fetch("http://localhost:5000/user/save", {
+    const response = await fetch(`${calc_uri}/user/save`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -403,7 +404,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const getData = async (token: string, id: string) => {
     const response = await fetch(
-      `http://localhost:5000/user/get-project/${id}`,
+      `${calc_uri}/user/get-project/${id}`,
       {
         method: "GET",
         credentials: "include",
