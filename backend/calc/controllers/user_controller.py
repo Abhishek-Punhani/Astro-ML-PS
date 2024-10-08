@@ -105,7 +105,7 @@ def change_password():
         # Hash the new password
         hashed_new_password = bcrypt.hashpw(
             new_password.encode("utf-8"), bcrypt.gensalt()
-        ).decode("utf-8")
+        )
 
         # Generate a new token with the hashed new password
         token = jwt.encode(
@@ -115,7 +115,7 @@ def change_password():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
         rtoken = jwt.encode(
             {
                 "pass": hashed_new_password,
@@ -123,11 +123,11 @@ def change_password():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Ensure the token is a string (if using older versions of PyJWT)
         if isinstance(token, bytes):
-            token = token.decode("utf-8")
+            token = token
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)
@@ -328,7 +328,7 @@ def resendOtp():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         rtoken = jwt.encode(
             {
@@ -337,7 +337,7 @@ def resendOtp():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)

@@ -15,9 +15,10 @@ print("CLIENT_URI:", os.getenv("CLIENT_URI"))
 
 cors_options = {
     "supports_credentials": True,
-    "origins": [os.getenv("CLIENT_URI")],
+    "origins": [f"{os.getenv('CLIENT_URI')}"],  # Your HTTP frontend
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]
 }
-
 CORS(app, **cors_options)
 
 # Load configuration
@@ -32,12 +33,12 @@ app.register_blueprint(user_blueprint, url_prefix="/user")
 
 # Error handling
 @app.errorhandler(404)
-def not_found_error():
+def not_found_error(error):
     return {"error": {"status": 404, "message": "Page Not Found!"}}, 404
 
 
 @app.errorhandler(500)
-def internal_server_error():
+def internal_server_error(error):
     return {"error": {"status": 500, "message": "Internal Server Error!"}}, 500
 
 

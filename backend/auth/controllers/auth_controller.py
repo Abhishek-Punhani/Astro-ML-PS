@@ -42,7 +42,7 @@ async def register():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         rtoken = jwt.encode(
             {
@@ -51,7 +51,7 @@ async def register():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)
@@ -241,7 +241,7 @@ def refresh_token():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         return jsonify(
             {
@@ -320,7 +320,7 @@ async def google_login():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         rtoken = jwt.encode(
             {
@@ -329,7 +329,7 @@ async def google_login():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)
@@ -489,12 +489,12 @@ def verifyOtp():
         access_token_str = (
             access_token
             if isinstance(access_token, str)
-            else access_token.decode("utf-8")
+            else access_token
         )
         refresh_token_str = (
             refresh_token
             if isinstance(refresh_token, str)
-            else refresh_token.decode("utf-8")
+            else refresh_token
         )
 
         # Response Structure
@@ -570,7 +570,7 @@ def sendOtp():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
         clientapi = os.getenv("CLIENT_URI")
         link = clientapi + "/auth/newcredentials/" + str(user["id"]) + "/" + token
         send_reset_password_email(user["username"], user["email"], link)
@@ -626,7 +626,7 @@ def forgot_password():
         # Hash the new password
         hashed_new_password = bcrypt.hashpw(
             new_password.encode("utf-8"), bcrypt.gensalt()
-        ).decode("utf-8")
+        )
 
         if user["password"] == hashed_new_password:
             return (
@@ -709,7 +709,7 @@ def resendOtp():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         rtoken = jwt.encode(
             {
@@ -718,7 +718,7 @@ def resendOtp():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)
@@ -841,7 +841,7 @@ async def githubCallback():
             },
             os.getenv("AUTH_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         rtoken = jwt.encode(
             {
@@ -850,7 +850,7 @@ async def githubCallback():
             },
             os.getenv("REFRESH_TOKEN_SECRET"),
             algorithm="HS256",
-        ).decode("utf-8")
+        )
 
         # Generate a 6-digit OTP
         otp = random.randint(100000, 999999)
