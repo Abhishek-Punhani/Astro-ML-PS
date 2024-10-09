@@ -1,0 +1,30 @@
+[MASTER]
+# A comma-separated list of packages or modules to be ignored. 
+ignore=venv
+
+# Python version for Pylint to use. The default is '3.7'.
+python-version=3.8
+
+[MESSAGES CONTROL]
+# Disable the following messages
+disable=C0114, C0115, C0116, C0103, E0401, W0718, W0621, F0010
+
+[FORMAT]
+# Maximum number of characters on a single line.
+max-line-length=100
+
+[DESIGN]
+# Maximum number of arguments for a function / method.
+max-args=5
+
+[TYPECHECK]
+# Enable the type-checking feature for better type validation.
+enable-type-checking=yes
+
+[LOGGING]
+# Disable the warnings about logging.
+disable=missing-log-doc
+
+[REPORTS]
+# Disable the report generation.
+reports=no
