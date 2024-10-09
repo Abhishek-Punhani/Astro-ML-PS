@@ -105,7 +105,7 @@ def change_password():
         # Hash the new password
         hashed_new_password = bcrypt.hashpw(
             new_password.encode("utf-8"), bcrypt.gensalt()
-        )
+        ).decode("utf-8")
 
         # Generate a new token with the hashed new password
         token = jwt.encode(
