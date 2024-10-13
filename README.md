@@ -99,3 +99,22 @@ npm install
 </ol>
 
 # Limitations of ML Model
+<ol type="1"><li>Sensitivity to Noise:​
+<ul><li>Smoothing with Gaussian filters (or averaging point smoothing) may not be optimal for all datasets.​</li>
+<li>Impact: Fine details of smaller bursts might get lost, or noise might still be present in high-intensity bursts.​</li>
+</ul>
+</li>
+<li>DBSCAN Clustering Limitations:​
+<ul>
+<li>DBSCAN may not detect all types of burst patterns, especially if the burst distribution is non-uniform or if noise is high.​</li>
+<li>Highly sensitive to the eps and min_samples parameters.​</li>
+<li>Impact: Clustering results may vary significantly based on parameter tuning, and some bursts may be misclassified or marked as outliers.​</li>
+</ul>
+</li>
+</ol>
+
+
+
+
+
+​
