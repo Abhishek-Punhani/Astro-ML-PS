@@ -1,3 +1,4 @@
+
 # Moon Analyzer
 <ul>
 <li>We aim to develop a comprehensive tool for visualizing data derived from a machine learning model that classifies X-ray bursts</li>
@@ -23,7 +24,7 @@
     <tbody>
       <tr>
         <td>Python</td>
-        <td>xx</td>
+        <td>3.8</td>
       </tr>
       <tr>
         <td>PostgresSQL</td>
@@ -31,7 +32,7 @@
       </tr>
       <tr>
         <td>node.js</td>
-        <td>xx</td>
+        <td>20</td>
       </tr>
       <tr>
         <td>tailwind CSS</td>
@@ -61,7 +62,7 @@ git clone https://github.com/Abhishek-Punhani/Astro-ML-PS
 4. Navigate to frontend folder
 
 ```
-cd frontend
+cd ./Frontend
 ```
 
 5. Install node modules in the client.
@@ -69,7 +70,14 @@ cd frontend
 ```
 npm install
 ```
-<b>add more steps accordingly</b>
+6, Navigate to backend folder and install all the dependencies
+```
+pip install -r requirements.txt
+```
+6. Start The server
+```
+./start_servers.sh
+```
 
 # Features
 
