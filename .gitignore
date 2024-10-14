@@ -14,15 +14,23 @@ Frontend/dist/
 Frontend/dist-ssr/
 Frontend/*.local
 Frontend/.env
+Frontend/certs/
 Chart/
 
 # Backend specific
-backend/venv/
-backend/.venv/
-backend/flask_session
+backend/auth/venv/
+backend/auth/.venv/
+backend/auth/flask_session
 .venv
-backend/__pycache__/
-backend/.env
+backend/auth/__pycache__/
+backend/auth/.env
+**/__pycache__/
+backend/calc/venv/
+backend/calc/.venv/
+backend/calc/flask_session
+.venv
+backend/calc/__pycache__/
+backend/calc/.env
 **/__pycache__/
 # Ignore OS-generated files
 .DS_Store

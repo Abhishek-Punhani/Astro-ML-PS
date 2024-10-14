@@ -68,7 +68,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [reftoken, SetReftoken] = useState<string | null>(null);
   const [access, setAccess] = useState<"link" | "reset" | null>(null);
   const [data, setData] = useState<any>(null);
-
+  const auth_uri = import.meta.env.REACT_APP_AUTH_SERVER as string;
+  const calc_uri = import.meta.env.REACT_APP_CALC_SERVER as string;
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -114,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch("http://localhost:8080/auth/login", {
+    const response = await fetch(`${auth_uri}/auth/login`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -136,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (user?.token) {
       return verifyUserOtp(otp, token, user.token);
     }
-    const response = await fetch("http://localhost:8080/auth/verify-otp", {
+    const response = await fetch(`${auth_uri}/auth/verify-otp`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -162,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     email: string,
     password: string
   ) => {
-    const response = await fetch("http://localhost:8080/auth/register", {
+    const response = await fetch(`${auth_uri}/auth/register`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -185,7 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     username: string,
     authId: string
   ) => {
-    const response = await fetch("http://localhost:8080/auth/google-login", {
+    const response = await fetch(`${auth_uri}/auth/google-login`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -204,7 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const sendOtp = async (email: string) => {
-    const response = await fetch("http://localhost:8080/auth/send-otp", {
+    const response = await fetch(`${auth_uri}/auth/send-otp`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -229,7 +230,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const forgotPassword = async (token: string, password: string) => {
-    const response = await fetch("http://localhost:8080/auth/forgot-password", {
+    const response = await fetch(`${auth_uri}/auth/forgot-password`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -250,7 +251,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     token: string
   ) => {
     console.log(current_password, new_password, token);
-    const response = await fetch("http://localhost:5000/user/change-password", {
+    const response = await fetch(`${calc_uri}/user/change-password`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -273,18 +274,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const verifyUserOtp = async (otp: number, rtoken: string, token: string) => {
-    const response = await fetch(
-      "http://localhost:5000/user/verify-change-password",
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ otp, rtoken }),
-      }
-    );
+    const response = await fetch(`${calc_uri}/user/verify-change-password`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ otp, rtoken }),
+    });
     const data = await response.json();
     if (response.ok && vtoken) {
       SuccessfulToast("Password Changed Successfully");
@@ -296,7 +294,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const analyze = async (data: any, token: string) => {
-    const response = await fetch("http://localhost:5000/user/analyze", {
+    const response = await fetch(`${calc_uri}/user/analyze`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -315,18 +313,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const resendOtp = async (ref_token: string) => {
     if (user?.token) {
-      const response = await fetch(
-        "http://localhost:5000/user/resend-change-otp",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.token}`,
-          },
-          body: JSON.stringify({ ref_token }),
-        }
-      );
+      const response = await fetch(`${calc_uri}/user/resend-change-otp`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify({ ref_token }),
+      });
       const data = await response.json();
       if (response.ok && vtoken && reftoken) {
         SetVtoken(data.token);
@@ -338,7 +333,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Something Went Wrong !");
       }
     }
-    const response = await fetch("http://localhost:8080/auth/resend-otp", {
+    const response = await fetch(`${auth_uri}/auth/resend-otp`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -355,7 +350,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const githubLogin = async (code: string) => {
-    const response = await fetch("http://localhost:8080/auth/github/callback", {
+    const response = await fetch(`${auth_uri}/auth/github/callback`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -374,7 +369,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const saveResult = async (data: any, token: string) => {
-    const response = await fetch("http://localhost:5000/user/save", {
+    const response = await fetch(`${calc_uri}/user/save`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -402,17 +397,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const getData = async (token: string, id: string) => {
-    const response = await fetch(
-      `http://localhost:5000/user/get-project/${id}`,
-      {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`${calc_uri}/user/get-project/${id}`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
     const res = await response.json();
     if (response.ok) {
       return res.data;
