@@ -17,7 +17,7 @@ cors_options = {
     "supports_credentials": True,
     "origins": [f"{os.getenv('CLIENT_URI')}"],  # Your HTTP frontend
     "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"]
+    "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
 }
 CORS(app, **cors_options)
 

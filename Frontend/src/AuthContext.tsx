@@ -274,18 +274,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const verifyUserOtp = async (otp: number, rtoken: string, token: string) => {
-    const response = await fetch(
-      `${calc_uri}/user/verify-change-password`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ otp, rtoken }),
-      }
-    );
+    const response = await fetch(`${calc_uri}/user/verify-change-password`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ otp, rtoken }),
+    });
     const data = await response.json();
     if (response.ok && vtoken) {
       SuccessfulToast("Password Changed Successfully");
@@ -316,18 +313,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const resendOtp = async (ref_token: string) => {
     if (user?.token) {
-      const response = await fetch(
-        `${calc_uri}/user/resend-change-otp`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user?.token}`,
-          },
-          body: JSON.stringify({ ref_token }),
-        }
-      );
+      const response = await fetch(`${calc_uri}/user/resend-change-otp`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user?.token}`,
+        },
+        body: JSON.stringify({ ref_token }),
+      });
       const data = await response.json();
       if (response.ok && vtoken && reftoken) {
         SetVtoken(data.token);
@@ -403,17 +397,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const getData = async (token: string, id: string) => {
-    const response = await fetch(
-      `${calc_uri}/user/get-project/${id}`,
-      {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`${calc_uri}/user/get-project/${id}`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
     const res = await response.json();
     if (response.ok) {
       return res.data;

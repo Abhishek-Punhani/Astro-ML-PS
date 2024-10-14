@@ -487,14 +487,10 @@ def verifyOtp():
 
         # Decode tokens to strings
         access_token_str = (
-            access_token
-            if isinstance(access_token, str)
-            else access_token
+            access_token if isinstance(access_token, str) else access_token
         )
         refresh_token_str = (
-            refresh_token
-            if isinstance(refresh_token, str)
-            else refresh_token
+            refresh_token if isinstance(refresh_token, str) else refresh_token
         )
 
         # Response Structure
