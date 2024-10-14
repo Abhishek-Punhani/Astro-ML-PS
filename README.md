@@ -70,11 +70,11 @@ cd ./Frontend
 ```
 npm install
 ```
-6, Navigate to backend folder and install all the dependencies
+6, Navigate to auth and calc folder inside backend folder and install all the dependencies by running this in each folder
 ```
 pip install -r requirements.txt
 ```
-6. Start The server
+6. Start The server separately in each folder
 ```
 ./start_servers.sh
 ```
