@@ -47,7 +47,7 @@ export const LoginForm: React.FC = () => {
       setLoading(false);
     }
   };
-  const currentUrl = window.location.href.replace(/\/login$/, '') as string;
+  const currentUrl = window.location.href.replace(/\/login$/, "") as string;
   const GitHubLoginButton: React.FC = () => {
     const loginWithGitHub = () => {
       const redirectURI = `${currentUrl}/auth/github/callback`;
