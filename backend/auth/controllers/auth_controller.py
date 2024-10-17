@@ -820,7 +820,7 @@ async def githubCallback():
 
         if not existing_user:
             try:
-                user = await create_user([email, username, authId])
+                user = await create_user({"email": email, "username": username, "authId": authId})
             except Exception as e:
                 print(e)
                 return jsonify({"error": "Internal server error"}), 500
